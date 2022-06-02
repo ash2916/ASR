@@ -3,6 +3,7 @@ import torch.utils.benchmark as benchmark
 
 from jasper import Jasper
 from contextnet import ContextNet
+from las.las_model import Listener
 
 
 @torch.no_grad()
@@ -49,7 +50,7 @@ def main():
     model = Jasper(num_classes=10, version='5x3', device=device)
     print(run_model(model, inputs=inputs, input_lengths=input_lengths))
     """
-    BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE, NUM_VOCABS = 3, 500, 80, 10
+    """BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE, NUM_VOCABS = 3, 500, 80, 10
     device = torch.device('cpu')
 
     inputs = torch.FloatTensor(BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE).to(device)
@@ -62,7 +63,18 @@ def main():
     model = ContextNet(
         model_size='large',
         num_vocabs=10, )
-    print(run_model(model, inputs=inputs, input_lengths=input_lengths, targets=targets, target_lengths=target_lengths))
+    print(run_model(model, inputs=inputs, input_lengths=input_lengths, targets=targets, target_lengths=target_lengths))""
+    """
+    device = torch.device('cpu')
+    BATCH_SIZE, TIME_STEP, FEATURE = 3, 784, 39
+    input_x = torch.FloatTensor(BATCH_SIZE, TIME_STEP, FEATURE).to(device)
+    model = Listener(
+        input_feature_dim=39,
+        listener_hidden_dim=256,
+        listener_layer=2,
+        rnn_unit='LSTM',
+        use_gpu=False)
+    print(run_model(model, input_x=input_x))
 
 
 if __name__ == "__main__":
