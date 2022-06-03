@@ -1,11 +1,11 @@
 import torch
 import torch.utils.benchmark as benchmark
 
-from jasper import Jasper
-from contextnet import ContextNet
-from las.las_model import Listener
-from quartznet.model import QuartzNet
-from conformer.model import Conformer
+from models.jasper import Jasper
+from models.contextnet import ContextNet
+from models.las.model import Listener
+from models.quartznet.model import QuartzNet
+from models.conformer.model import Conformer
 
 
 @torch.no_grad()
@@ -88,11 +88,11 @@ def main():
     print(run_model(model, x=x))
     """
 
-    batch_size, sequence_length, dim = 3, 1234, 80
+    batch_size, sequence_length, dim = 3, 12345, 80
     device = torch.device('cpu')
 
     inputs = torch.rand(batch_size, sequence_length, dim).to(device)
-    input_lengths = torch.IntTensor([1234, 1230, 1200])
+    input_lengths = torch.IntTensor([12345, 12300, 12000])
 
     model = Conformer(num_classes=10,
                       input_dim=dim,

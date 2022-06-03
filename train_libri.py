@@ -68,10 +68,6 @@ while global_step < total_steps:
                                                is_training=True, data='libri', **conf['model_parameter'])
         global_step += 1
 
-        if (global_step) % verbose_step == 0:
-            log_writer.add_scalars('loss', {'train': batch_loss}, global_step)
-            log_writer.add_scalars('cer', {'train': np.array([np.array(batch_ler).mean()])}, global_step)
-
         if global_step % valid_step == 0:
             break
 
@@ -87,8 +83,6 @@ while global_step < total_steps:
 
     val_loss = np.array([sum(val_loss) / len(val_loss)])
     val_ler = np.array([sum(val_ler) / len(val_ler)])
-    log_writer.add_scalars('loss', {'dev': val_loss}, global_step)
-    log_writer.add_scalars('cer', {'dev': val_ler}, global_step)
 
     # Generate Example
     if conf['model_parameter']['bucketing']:
@@ -121,11 +115,6 @@ while global_step < total_steps:
             tmp += idx2char[idx]
         gt.append(tmp)
 
-    for idx, (p, g) in enumerate(zip(pd, gt)):
-        log_writer.add_text('pred_' + str(idx), p, global_step)
-        if not record_gt_text:
-            log_writer.add_text('test_' + str(idx), g, global_step)
-
     if not record_gt_text:
         record_gt_text = True
 
@@ -141,8 +130,6 @@ while global_step < total_steps:
     for i in range(conf['training_parameter']['batch_size']):
         for j in range(num_head):
             m = np.repeat(np.expand_dims(np.array(att_map[i][j]), 0), 3, axis=0)
-            log_writer.add_image('attention_' + str(i) + '_head_' + str(j),
-                                 torch.FloatTensor(m[:, :len(pd[i]), :]), global_step)
 
     # Checkpoint
     if best_ler >= sum(val_ler) / len(val_ler):

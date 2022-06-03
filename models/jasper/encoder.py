@@ -17,8 +17,8 @@ import torch.nn as nn
 
 from torch import Tensor
 from typing import Tuple
-from jasper import JasperEncoderConfig
-from jasper.sublayers import (
+from models.jasper import JasperEncoderConfig
+from models.jasper.sublayers import (
     JasperSubBlock, 
     JasperBlock,
     MaskConv1d,

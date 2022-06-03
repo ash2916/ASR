@@ -18,8 +18,8 @@ import torch.nn.functional as F
 
 from torch import Tensor
 from typing import Tuple
-from jasper import JasperDecoderConfig
-from jasper.sublayers import JasperSubBlock
+from models.jasper import JasperDecoderConfig
+from models.jasper.sublayers import JasperSubBlock
 
 
 class JasperDecoder(nn.Module):

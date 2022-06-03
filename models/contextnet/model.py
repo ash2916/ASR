@@ -14,8 +14,8 @@
 
 from typing import Tuple
 from torch import Tensor
-from contextnet.audio_encoder import AudioEncoder
-from contextnet.label_encoder import LabelEncoder
+from models.contextnet.audio_encoder import AudioEncoder
+from models.contextnet.label_encoder import LabelEncoder
 import torch
 import torch.nn as nn
 

@@ -14,7 +14,7 @@
 
 from typing import Tuple
 from torch import Tensor
-from contextnet.convolution import ConvBlock
+from models.contextnet.convolution import ConvBlock
 import torch.nn as nn
 
 

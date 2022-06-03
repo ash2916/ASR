@@ -14,7 +14,7 @@
 
 from torch import Tensor
 from typing import Tuple
-from contextnet.module import Swish
+from models.contextnet.module import Swish
 import torch.nn as nn
 
 

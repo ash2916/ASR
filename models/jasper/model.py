@@ -17,9 +17,9 @@ import torch.nn as nn
 
 from torch import Tensor
 from typing import Tuple
-from jasper.decoder import JasperDecoder
-from jasper.encoder import JasperEncoder
-from jasper import (
+from models.jasper.decoder import JasperDecoder
+from models.jasper.encoder import JasperEncoder
+from models.jasper import (
     Jasper10x5EncoderConfig,
     Jasper5x3EncoderConfig,
     JasperDecoderConfig,

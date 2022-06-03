@@ -14,8 +14,8 @@
 
 from typing import Tuple
 from torch import Tensor
-from contextnet.layer import SELayer, ConvLayer
-from contextnet.module import Swish
+from models.contextnet.layer import SELayer, ConvLayer
+from models.contextnet.module import Swish
 import torch.nn as nn
 
 
@@ -43,6 +43,7 @@ class ConvBlock(nn.Module):
                 ``(batch, dimension, seq_length)``
         - **output_lengths**: The length of output tensor. ``(batch)``
     """
+
     def __init__(
             self,
             in_channels: int,
@@ -71,12 +72,12 @@ class ConvBlock(nn.Module):
 
         if self.num_layers == 1:
             self.conv_layers = ConvLayer(
-                        in_channels=in_channels,
-                        out_channels=out_channels,
-                        kernel_size=kernel_size,
-                        stride=stride,
-                        padding=padding,
-                    )
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+            )
 
         else:
             stride_list = [1 for _ in range(num_layers - 1)] + [stride]

@@ -78,4 +78,4 @@ class JasperDecoderConfig:
         }
 
 
-from jasper.model import Jasper
+from models.jasper.model import Jasper
