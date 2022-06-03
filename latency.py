@@ -4,6 +4,8 @@ import torch.utils.benchmark as benchmark
 from jasper import Jasper
 from contextnet import ContextNet
 from las.las_model import Listener
+from quartznet.model import QuartzNet
+from conformer.model import Conformer
 
 
 @torch.no_grad()
@@ -50,7 +52,8 @@ def main():
     model = Jasper(num_classes=10, version='5x3', device=device)
     print(run_model(model, inputs=inputs, input_lengths=input_lengths))
     """
-    """BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE, NUM_VOCABS = 3, 500, 80, 10
+    """
+    BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE, NUM_VOCABS = 3, 500, 80, 10
     device = torch.device('cpu')
 
     inputs = torch.FloatTensor(BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE).to(device)
@@ -63,7 +66,8 @@ def main():
     model = ContextNet(
         model_size='large',
         num_vocabs=10, )
-    print(run_model(model, inputs=inputs, input_lengths=input_lengths, targets=targets, target_lengths=target_lengths))""
+    print(run_model(model, inputs=inputs, input_lengths=input_lengths, targets=targets, target_lengths=target_lengths))
+    """
     """
     device = torch.device('cpu')
     BATCH_SIZE, TIME_STEP, FEATURE = 3, 784, 39
@@ -75,6 +79,26 @@ def main():
         rnn_unit='LSTM',
         use_gpu=False)
     print(run_model(model, input_x=input_x))
+    """
+    """
+    device = torch.device('cpu')
+    INPUT, WEIGHT, BIAS = 0, 64, 33
+    x = torch.FloatTensor(INPUT, WEIGHT, BIAS).to(device)
+    model = QuartzNet(n_mels=64, num_classes=28)
+    print(run_model(model, x=x))
+    """
+
+    batch_size, sequence_length, dim = 3, 1234, 80
+    device = torch.device('cpu')
+
+    inputs = torch.rand(batch_size, sequence_length, dim).to(device)
+    input_lengths = torch.IntTensor([1234, 1230, 1200])
+
+    model = Conformer(num_classes=10,
+                      input_dim=dim,
+                      encoder_dim=32,
+                      num_encoder_layers=3)
+    print(run_model(model, inputs=inputs, input_lengths=input_lengths))
 
 
 if __name__ == "__main__":
