@@ -39,10 +39,9 @@ def run_model(device, model, **kwargs):
 
 
 def compare_all():
-
     # Compare takes a list of measurements which we'll save in results.
     results = []
-    devices = [torch.device("cpu"),]
+    devices = [torch.device("cpu"), ]
     if torch.cuda.is_available():
         devices.append(torch.device("cuda:0"))
     for device in devices:
@@ -116,8 +115,9 @@ def contextnet_latency(device):
     model = ContextNet(
         model_size='medium',
         num_vocabs=10, )
-    print("ContextNet " + run_model(device, model, inputs=inputs, input_lengths=input_lengths, targets=targets,
-                                    target_lengths=target_lengths))
+    return model
+    # print("ContextNet " + run_model(device, model, inputs=inputs, input_lengths=input_lengths, targets=targets,
+    #  target_lengths=target_lengths))
 
 
 def quartznet_latency(device):
