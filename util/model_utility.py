@@ -1,6 +1,11 @@
 import torch
 import torch.utils.data
 from torch.optim import *
+
+from models.conformer import Conformer
+from models.contextnet import ContextNet
+from models.jasper import Jasper
+from models.quartznet.model import QuartzNet
 from util.librispeech_prepare_data import *
 import auraloss
 
@@ -19,7 +24,7 @@ class ModelUtility:
             self.validate_loader = librispeech_validate_loader
 
     def saveModel(self):
-        path = "./../saved_models/"+self.model_name+".pth"
+        path = "./saved_models/" + self.model_name + ".pth"
         torch.save(self.model.state_dict(), path)
 
     def train(self):
@@ -82,7 +87,7 @@ class ModelUtility:
 
         # Load the model that we saved at the end of the training loop
         model = self.model(input_size, output_size)
-        path = "./../saved_models/"+self.model_name+".pth"
+        path = "./saved_models/" + self.model_name + ".pth"
         model.load_state_dict(torch.load(path))
 
         running_accuracy = 0
@@ -98,3 +103,51 @@ class ModelUtility:
                 running_accuracy += (predicted == outputs).sum().item()
 
             print('Accuracy of the model based on the test set is: %d %%' % (100 * running_accuracy / total))
+
+
+def jasper(device):
+    BATCH_SIZE, SEQ_LENGTH, DIM = 3, 12345, 80
+
+    inputs = torch.rand(BATCH_SIZE, SEQ_LENGTH, DIM).to(device)  # BxTxD
+    input_lengths = torch.LongTensor([SEQ_LENGTH, SEQ_LENGTH - 10, SEQ_LENGTH - 20]).to(device)
+
+    # Jasper 10x3 Model Test
+    model = Jasper(num_classes=10, version='5x3', device=device)
+    return {"model": model, "inputs": inputs, "input_lengths": input_lengths}
+
+
+def contextnet(device):
+    BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE, NUM_VOCABS = 3, 500, 80, 10
+
+    inputs = torch.FloatTensor(BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE).to(device)
+    input_lengths = torch.IntTensor([500, 450, 350]).to(device)
+    targets = torch.LongTensor([[1, 3, 3, 3, 3, 3, 4, 5, 6, 2],
+                                [1, 3, 3, 3, 3, 3, 4, 5, 2, 0],
+                                [1, 3, 3, 3, 3, 3, 4, 2, 0, 0]]).to(device)
+    target_lengths = torch.LongTensor([9, 8, 7]).to(device)
+
+    model = ContextNet(
+        model_size='medium',
+        num_vocabs=10, )
+    return {"model": model, "inputs": inputs, "input_lengths": input_lengths, "targets": targets,
+            "target_lengths": target_lengths}
+
+
+def quartznet(device):
+    batch_size, sequence_length, dim = 3, 12345, 80
+    x = torch.FloatTensor(batch_size, sequence_length, dim).to(device)
+    model = QuartzNet(n_mels=12345, num_classes=10)
+    return {"model": model, "x": x}
+
+
+def conformer(device):
+    batch_size, sequence_length, dim = 3, 12345, 80
+
+    inputs = torch.rand(batch_size, sequence_length, dim).to(device)
+    input_lengths = torch.IntTensor([12345, 12300, 12000])
+
+    model = Conformer(num_classes=10,
+                      input_dim=dim,
+                      encoder_dim=32,
+                      num_encoder_layers=3)
+    return {"model": model, "inputs": inputs, "input_lengths": input_lengths}
