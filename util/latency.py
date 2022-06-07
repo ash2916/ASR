@@ -38,6 +38,60 @@ def run_model(device, model, **kwargs):
     return f"Latency: {profile_result.mean * 1000:.5f} ms"
 
 
+def compare_all():
+
+    # Compare takes a list of measurements which we'll save in results.
+    results = []
+    devices = [torch.device("cpu"),]
+    if torch.cuda.is_available():
+        devices.append(torch.device("cuda:0"))
+    for device in devices:
+        # label and sub_label are the rows
+        # description is the column
+        label = 'Latency'
+        sub_label = f'{device}'
+        for num_threads in [1, 4, 16, 32]:
+            results.append(benchmark.Timer(
+                stmt='jasper_latency(device)',
+                setup='from util.latency import jasper_latency',
+                globals={'device': device},
+                num_threads=num_threads,
+                label=label,
+                sub_label=sub_label,
+                description='Jasper',
+            ).blocked_autorange(min_run_time=1))
+            results.append(benchmark.Timer(
+                stmt='contextnet_latency(device)',
+                setup='from util.latency import contextnet_latency',
+                globals={'device': device},
+                num_threads=num_threads,
+                label=label,
+                sub_label=sub_label,
+                description='ContextNet',
+            ).blocked_autorange(min_run_time=1))
+            results.append(benchmark.Timer(
+                stmt='quartznet_latency(device)',
+                setup='from util.latency import quartznet_latency',
+                globals={'device': device},
+                num_threads=num_threads,
+                label=label,
+                sub_label=sub_label,
+                description='QuartzNet',
+            ).blocked_autorange(min_run_time=1))
+            results.append(benchmark.Timer(
+                stmt='conformer_latency(device)',
+                setup='from util.latency import conformer_latency',
+                globals={'device': device},
+                num_threads=num_threads,
+                label=label,
+                sub_label=sub_label,
+                description='Conformer',
+            ).blocked_autorange(min_run_time=1))
+
+    compare = benchmark.Compare(results)
+    compare.print()
+
+
 def jasper_latency(device):
     BATCH_SIZE, SEQ_LENGTH, DIM = 3, 12345, 80
 
