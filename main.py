@@ -5,7 +5,7 @@ from util.model_utility import ModelUtility
 
 useGPU = False
 device = torch.device("cuda:0" if (useGPU and torch.cuda.is_available()) else "cpu")
-# print(latency.run_model(device, **model_utility.contextnet(device=device)))
+# print(latency.run_model(device, model_utility.contextnet(device=device)))
 latency.compare_all()
 
 # contextnet = ModelUtility(model=model_utility.contextnet(device=device).model, model_name="ContextNet",

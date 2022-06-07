@@ -9,13 +9,13 @@ def run_inference(model, *argv):
     return model.forward(*argv)
 
 
-def run_model(device, **kwargs):
+def run_model(device, model_dict):
     num_repeats = 15
     num_threads = torch.get_num_threads()
 
     globals_dict = {}
     stmt = "run_inference("
-    for key, value in kwargs.items():
+    for key, value in model_dict.items():
         globals_dict[key] = value
         stmt = stmt + key + ", "
     model = globals_dict.get('model')
@@ -37,14 +37,6 @@ def run_model(device, **kwargs):
     return f"Latency: {profile_result.mean * 1000:.5f} ms"
 
 
-def get_stmt(dict):
-    stmt = "run_model("
-    for key, value in dict.items():
-        stmt = stmt + key + ", "
-    stmt = stmt + ")"
-    return stmt
-
-
 def compare_all():
     # Compare takes a list of measurements which we'll save in results.
     results = []
@@ -56,20 +48,18 @@ def compare_all():
         # description is the column
         label = 'Latency'
         sub_label = f'{device}'
-        jasper_dict = model_utility.jasper(device=device)
-        jasper_dict['device'] = device
-        contextnet_dict = model_utility.contextnet(device=device)
-        contextnet_dict['device'] = device
-        for num_threads in [1, 4, 16, 32]:
+        for num_threads in [1, 4, 16]:
             results.append(benchmark.Timer(
-                stmt=get_stmt(contextnet_dict),
+                stmt="run_model(device, model_dict)",
                 setup='from util.latency import run_model',
-                globals=contextnet_dict,
+                globals={"device": device, "model_dict": model_utility.contextnet(device=device)},
                 num_threads=num_threads,
                 label=label,
                 sub_label=sub_label,
                 description='ContextNet',
             ).blocked_autorange(min_run_time=1))
+            if device == "cuda:0":
+                torch.cuda.empty_cache()
 
     compare = benchmark.Compare(results)
     compare.print()
