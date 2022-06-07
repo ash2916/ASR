@@ -212,6 +212,7 @@ class JointNet(nn.Module):
     Returns: output
         - **output** (torch.FloatTensor): Result of joint `encoder_output` and `decoder_output`
     """
+
     def __init__(
             self,
             num_vocabs: int,
