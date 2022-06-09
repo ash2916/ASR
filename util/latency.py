@@ -46,11 +46,13 @@ def get_latency(device, model_dict):
     return f"Latency: {profile_result.mean * 1000:.5f} ms"
 
 
-def compare_all(use_gpu=False):
+def compare_all(use_gpu=False, use_cpu=False):
     # Compare takes a list of measurements which we'll save in results.
     results = []
-    devices = [torch.device("cpu"), ]
-    if torch.cuda.is_available() and use_gpu:
+    devices = []
+    if use_cpu:
+        devices.append(torch.device("cpu"))
+    if use_gpu and torch.cuda.is_available():
         devices.append(torch.device("cuda:0"))
     for device in devices:
         # label and sub_label are the rows

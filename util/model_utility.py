@@ -8,26 +8,33 @@ from models.jasper import Jasper
 from models.quartznet.model import QuartzNet
 from util.librispeech_prepare_data import *
 import auraloss
+import torchaudio.transforms as transforms
 
 
 class ModelUtility:
     def __init__(self, model_name, model, device, dataset, num_epochs):
         self.model_name = model_name
-        self.model = model
+        self.model = model['model']
+        self.model.to(device)
+        del model['model']
+        self.params = {}
+        for key, value in model.items():
+            self.params[key] = value
         self.device = device
         self.num_epochs = num_epochs
-        self.loss_fn = auraloss.freq.MultiResolutionSTFTLoss()
-        self.optimizer = AdamW(model.parameters(), lr=0.001, weight_decay=0.0001)
+        self.loss_fn = transforms.RNNTLoss(blank=0)
+        self.optimizer = AdamW(self.model.parameters(), lr=0.001, weight_decay=0.0001)
         if dataset == "LibriSpeech":
             self.train_loader = librispeech_train_loader
             self.test_loader = librispeech_test_loader
             self.validate_loader = librispeech_validate_loader
 
-    def saveModel(self):
+    def save_model(self):
         path = "./saved_models/" + self.model_name + ".pth"
         torch.save(self.model.state_dict(), path)
 
     def train(self):
+        self.model.train()
         best_accuracy = 0.0
 
         print("Begin training...")
@@ -38,11 +45,11 @@ class ModelUtility:
             total = 0
 
             # Training Loop
-            for data in self.train_loader:
-                # for data in enumerate(train_loader, 0):
-                inputs, outputs = data  # get the input and real species as outputs; data is a list of [inputs, outputs]
+            for batch_idx, sample in enumerate(self.train_loader):
+                print(sample)
+                inputs, outputs = sample[0], sample[5]
                 self.optimizer.zero_grad()  # zero the parameter gradients
-                predicted_outputs = self.model(inputs)  # predict output from the model
+                predicted_outputs = self.model(**self.params)  # predict output from the model
                 train_loss = self.loss_fn(predicted_outputs, outputs)  # calculate loss for the predicted output
                 train_loss.backward()  # backpropagate the loss
                 self.optimizer.step()  # adjust parameters based on the calculated gradients
@@ -74,7 +81,7 @@ class ModelUtility:
 
             # Save the model if the accuracy is the best
             if accuracy > best_accuracy:
-                self.saveModel()
+                self.save_model()
                 best_accuracy = accuracy
 
                 # Print the statistics of the epoch
@@ -106,10 +113,10 @@ class ModelUtility:
 
 
 def jasper(device):
-    BATCH_SIZE, SEQ_LENGTH, DIM = 3, 12345, 80
+    batch_size, seq_length, dim = 3, 12345, 80
 
-    inputs = torch.rand(BATCH_SIZE, SEQ_LENGTH, DIM).to(device)  # BxTxD
-    input_lengths = torch.LongTensor([SEQ_LENGTH, SEQ_LENGTH - 10, SEQ_LENGTH - 20]).to(device)
+    inputs = torch.rand(batch_size, seq_length, dim).to(device)  # BxTxD
+    input_lengths = torch.LongTensor([seq_length, seq_length - 10, seq_length - 20]).to(device)
 
     # Jasper 10x3 Model Test
     model = Jasper(num_classes=10, version='5x3', device=device)
@@ -117,9 +124,9 @@ def jasper(device):
 
 
 def contextnet(device):
-    BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE, NUM_VOCABS = 3, 500, 80, 10
+    batch_size, seq_length, input_size, num_vocabs = 1, 100, 80, 10
 
-    inputs = torch.FloatTensor(BATCH_SIZE, SEQ_LENGTH, INPUT_SIZE).to(device)
+    inputs = torch.FloatTensor(batch_size, seq_length, input_size).to(device)
     input_lengths = torch.IntTensor([500, 450, 350]).to(device)
     targets = torch.LongTensor([[1, 3, 3, 3, 3, 3, 4, 5, 6, 2],
                                 [1, 3, 3, 3, 3, 3, 4, 5, 2, 0],

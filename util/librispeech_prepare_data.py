@@ -1,9 +1,9 @@
 import torch.utils.data
 import torchaudio
 
-librispeech_train_data = torchaudio.datasets.LIBRISPEECH("./datasets/", url="train-clean-100", download=True)
+librispeech_train_data = torchaudio.datasets.LIBRISPEECH("./datasets/", url="train-clean-100", download=False)
 librispeech_train_loader = torch.utils.data.DataLoader(librispeech_train_data,
-                                                       batch_size=10,
+                                                       batch_size=1,
                                                        shuffle=True)
 librispeech_test_data = torchaudio.datasets.LIBRISPEECH("./datasets/", url="test-clean", download=True)
 librispeech_test_loader = torch.utils.data.DataLoader(librispeech_test_data,
