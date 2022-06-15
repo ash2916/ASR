@@ -1,3 +1,4 @@
 /venv
-/datasets/LibriSpeech/
-/datasets/archive/
+/datasets
+/outputs
+/openspeech_models

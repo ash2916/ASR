@@ -1,0 +1,12 @@
+# @package _group_
+
+defaults:
+  - audio: fbank
+  - augment: default
+  - dataset: librispeech
+  - criterion: ctc
+  - lr_scheduler: warmup_reduce_lr_on_plateau
+  - model: quartznet10x5
+  - trainer: cpu-fp64
+  - trainer.logger: null
+  - tokenizer: libri_subword
