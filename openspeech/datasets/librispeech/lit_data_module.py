@@ -63,13 +63,34 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
 
     def __init__(self, configs: DictConfig) -> None:
         super(LightningLibriSpeechDataModule, self).__init__()
-        dir = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
         self.configs = configs
+        self.dir = self._get_dir()
         self.configs.dataset.dataset_path = "./../../../datasets/LibriSpeech/"
-        self.configs.dataset.manifest_file_path = "./../../../datasets/LibriSpeech/libri_subword_manifest.txt"
-        self.configs.tokenizer.vocab_path = "./../../../datasets/LibriSpeech/"
+        self.configs.dataset.manifest_file_path = self.dir + "libri_subword_manifest.txt"
+        self.configs.tokenizer.vocab_path = self.dir
         self.dataset = dict()
         self.logger = logging.getLogger(__name__)
+
+    def _get_dir(self):
+        dir_name = "./../../../openspeech_models/"
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        dir_name = dir_name + self.configs.model.model_name + "/"
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        dir_name = dir_name + self.configs.dataset.dataset + "/"
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        dir_name = dir_name + self.configs.trainer.name + "/"
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        dir_name = dir_name + self.configs.audio.name + "/"
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        dir_name = dir_name + self.configs.lr_scheduler.scheduler_name + "/"
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        return dir_name
 
     def _parse_manifest_file(self, manifest_file_path: str) -> Tuple[list, list]:
         """ Parsing manifest file """
@@ -98,6 +119,7 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
         base_url = "http://www.openslr.org/resources/12"
         train_dir = "train-960"
         if not os.path.exists((os.path.join(self.configs.dataset.dataset_path, train_dir))):
+            self.configs.dataset.dataset_path = "./../../../datasets/"
             if not os.path.exists(self.configs.dataset.dataset_path):
                 os.mkdir(self.configs.dataset.dataset_path)
 
@@ -115,13 +137,15 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
 
             self.logger.info("Merge all train packs into one")
 
+            self.configs.dataset.dataset_path = "./../../../datasets/LibriSpeech"
+
             if not os.path.exists(self.configs.dataset.dataset_path):
                 os.mkdir(self.configs.dataset.dataset_path)
             if not os.path.exists(os.path.join(self.configs.dataset.dataset_path, train_dir)):
                 os.mkdir(os.path.join(self.configs.dataset.dataset_path, train_dir))
 
             for part in self.LIBRISPEECH_PARTS[-3:]:  # train
-                path = os.path.join(self.configs.dataset.dataset_path, "LibriSpeech", part)
+                path = os.path.join(self.configs.dataset.dataset_path, part)
                 subfolders = os.listdir(path)
                 for subfolder in subfolders:
                     shutil.move(
