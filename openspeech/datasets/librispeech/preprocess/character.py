@@ -92,7 +92,7 @@ def generate_manifest_files(dataset_path: str, manifest_file_path: str, vocab_pa
     transcripts_collection = collect_transcripts(dataset_path)
 
     with open(manifest_file_path, 'w') as f:
-        for idx, part in enumerate(['train-960', 'dev-clean', 'dev-other', 'test-clean', 'test-other']):
+        for idx, part in enumerate(['train-clean-100', 'dev-clean', 'test-clean',]):
             for transcript in transcripts_collection[idx]:
                 audio_path, transcript = transcript.split('|')
                 label = sentence_to_target(transcript, char2id)

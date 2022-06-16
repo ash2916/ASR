@@ -23,11 +23,9 @@
 import os
 
 LIBRI_SPEECH_DATASETS = [
-    'train-960',
+    'train-clean-100',
     'dev-clean',
-    'dev-other',
     'test-clean',
-    'test-other',
 ]
 
 

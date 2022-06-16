@@ -48,17 +48,13 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
     Args:
         configs (DictConfig): configuraion set
     """
-    LIBRISPEECH_TRAIN_NUM = 281241
-    LIBRISPEECH_VALID_NUM = 5567
-    LIBRISPEECH_TEST_NUM = 5559
+    LIBRISPEECH_TRAIN_NUM = 29100
+    LIBRISPEECH_VALID_NUM = 2800
+    LIBRISPEECH_TEST_NUM = 2700
     LIBRISPEECH_PARTS = [
         'dev-clean',
         'test-clean',
-        'dev-other',
-        'test-other',
         'train-clean-100',
-        'train-clean-360',
-        'train-other-500',
     ]
 
     def __init__(self, configs: DictConfig) -> None:
@@ -107,52 +103,6 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
 
         return audio_paths, transcripts
 
-    def _download_dataset(self) -> None:
-        """
-        Download librispeech dataset.
-            - train-960(train-clean-100, train-clean-360, train-other-500)
-            - dev-clean
-            - dev-other
-            - test-clean
-            - test-other
-        """
-        base_url = "http://www.openslr.org/resources/12"
-        train_dir = "train-960"
-        if not os.path.exists((os.path.join(self.configs.dataset.dataset_path, train_dir))):
-            self.configs.dataset.dataset_path = "./../../../datasets/"
-            if not os.path.exists(self.configs.dataset.dataset_path):
-                os.mkdir(self.configs.dataset.dataset_path)
-
-            for part in self.LIBRISPEECH_PARTS:
-                self.logger.info(f"Librispeech-{part} download..")
-                url = f"{base_url}/{part}.tar.gz"
-                wget.download(url)
-                shutil.move(f"{part}.tar.gz", os.path.join(self.configs.dataset.dataset_path, f"{part}.tar.gz"))
-
-                self.logger.info(f"Un-tarring archive {self.configs.dataset.dataset_path}/{part}.tar.gz")
-                tar = tarfile.open(f"{self.configs.dataset.dataset_path}/{part}.tar.gz", mode="r:gz")
-                tar.extractall(self.configs.dataset.dataset_path)
-                tar.close()
-                os.remove(f"{self.configs.dataset.dataset_path}/{part}.tar.gz")
-
-            self.logger.info("Merge all train packs into one")
-
-            self.configs.dataset.dataset_path = "./../../../datasets/LibriSpeech"
-
-            if not os.path.exists(self.configs.dataset.dataset_path):
-                os.mkdir(self.configs.dataset.dataset_path)
-            if not os.path.exists(os.path.join(self.configs.dataset.dataset_path, train_dir)):
-                os.mkdir(os.path.join(self.configs.dataset.dataset_path, train_dir))
-
-            for part in self.LIBRISPEECH_PARTS[-3:]:  # train
-                path = os.path.join(self.configs.dataset.dataset_path, part)
-                subfolders = os.listdir(path)
-                for subfolder in subfolders:
-                    shutil.move(
-                        os.path.join(path, subfolder),
-                        os.path.join(self.configs.dataset.dataset_path, train_dir, subfolder),
-                    )
-
     def prepare_data(self) -> None:
         """
         Prepare librispeech data
@@ -166,9 +116,6 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
             from openspeech.datasets.librispeech.preprocess.character import generate_manifest_files
         else:
             raise ValueError(f"Unsupported vocabulary unit: {self.configs.tokenizer.unit}")
-
-        if self.configs.dataset.dataset_download:
-            self._download_dataset()
 
         if not os.path.exists(self.configs.dataset.manifest_file_path):
             self.logger.info("Manifest file is not exists !!\n"
