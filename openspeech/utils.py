@@ -375,8 +375,8 @@ def build_dummy_configs(
         audio_configs=None,
 ):
     from openspeech.models import ConformerConfigs
-    from openspeech.criterion import CrossEntropyLossConfigs
-    from openspeech.tokenizers.ksponspeech.character import KsponSpeechCharacterTokenizerConfigs
+    from openspeech.criterion import CTCLossConfigs
+    from openspeech.tokenizers.librispeech.character import LibriSpeechCharacterTokenizerConfigs
     from openspeech.data.audio.melspectrogram.melspectrogram import MelSpectrogramConfigs
     from openspeech.dataclass import CPUTrainerConfigs
     from openspeech.optim.scheduler.warmup_reduce_lr_on_plateau_scheduler import WarmupReduceLROnPlateauConfigs
@@ -385,11 +385,10 @@ def build_dummy_configs(
         model_configs = ConformerConfigs()
 
     if vocab_configs is None:
-        vocab_configs = KsponSpeechCharacterTokenizerConfigs()
-        vocab_configs.vocab_path = "labels.csv"
+        vocab_configs = LibriSpeechCharacterTokenizerConfigs()
 
     if criterion_configs is None:
-        criterion_configs = CrossEntropyLossConfigs
+        criterion_configs = CTCLossConfigs()
 
     if trainer_configs is None:
         trainer_configs = CPUTrainerConfigs()

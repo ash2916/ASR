@@ -141,13 +141,13 @@ class BaseTrainerConfigs(OpenspeechDataclass):
         default="dp", metadata={"help": "Previously known as distributed_backend (dp, ddp, ddp2, etc…)."}
     )
     accumulate_grad_batches: int = field(
-        default=1, metadata={"help": "Accumulates grads every k batches or as set up in the dict."}
+        default=4, metadata={"help": "Accumulates grads every k batches or as set up in the dict."}
     )
     num_workers: int = field(
-        default=4, metadata={"help": "The number of cpu cores"}
+        default=1, metadata={"help": "The number of cpu cores"}
     )
     batch_size: int = field(
-        default=32, metadata={"help": "Size of batch"}
+        default=12, metadata={"help": "Size of batch"}
     )
     check_val_every_n_epoch: int = field(
         default=1, metadata={"help": "Check val every n train epochs."}
@@ -159,10 +159,10 @@ class BaseTrainerConfigs(OpenspeechDataclass):
         default="wandb", metadata={"help": "Training logger. {wandb, tensorboard}"}
     )
     max_epochs: int = field(
-        default=20, metadata={"help": "Stop training once this number of epochs is reached."}
+        default=1, metadata={"help": "Stop training once this number of epochs is reached."}
     )
     save_checkpoint_n_steps: int = field(
-        default=10000, metadata={"help": "Save a checkpoint every N steps."}
+        default=100, metadata={"help": "Save a checkpoint every N steps."}
     )
     auto_scale_batch_size: str = field(
         default="binsearch", metadata={"help": "If set to True, will initially run a batch size finder trying to find "

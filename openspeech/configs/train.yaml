@@ -5,8 +5,8 @@ defaults:
   - augment: default
   - dataset: librispeech
   - criterion: ctc
-  - lr_scheduler: warmup_reduce_lr_on_plateau
-  - model: quartznet10x5
-  - trainer: cpu-fp64
+  - lr_scheduler: warmup
+  - model: contextnet
+  - trainer: gpu-fp16
   - trainer.logger: null
   - tokenizer: libri_subword
