@@ -137,7 +137,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
     seed: int = field(
         default=1, metadata={"help": "Seed for training."}
     )
-    accelerator: str = field(
+    accelerator: str = field(wq
         default="dp", metadata={"help": "Previously known as distributed_backend (dp, ddp, ddp2, etc…)."}
     )
     accumulate_grad_batches: int = field(
@@ -147,7 +147,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
         default=1, metadata={"help": "The number of cpu cores"}
     )
     batch_size: int = field(
-        default=12, metadata={"help": "Size of batch"}
+        default=8, metadata={"help": "Size of batch"}
     )
     check_val_every_n_epoch: int = field(
         default=1, metadata={"help": "Check val every n train epochs."}
