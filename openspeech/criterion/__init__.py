@@ -76,10 +76,28 @@ for file in os.listdir(criterion_dir):
         module = importlib.import_module(f"openspeech.criterion.{criterion_name}")
 
 
+from .cross_entropy.configuration import CrossEntropyLossConfigs
 from .ctc.configuration import CTCLossConfigs
+from .joint_ctc_cross_entropy.configuration import JointCTCCrossEntropyLossConfigs
+from .label_smoothed_cross_entropy.configuration import LabelSmoothedCrossEntropyLossConfigs
+from .transducer.configuration import TransducerLossConfigs
+from .perplexity.perplexity import PerplexityLossConfigs
+from .cross_entropy.cross_entropy import CrossEntropyLoss
 from .ctc.ctc import CTCLoss
+from .joint_ctc_cross_entropy.joint_ctc_cross_entropy import JointCTCCrossEntropyLoss
+from .label_smoothed_cross_entropy.label_smoothed_cross_entropy import LabelSmoothedCrossEntropyLoss
+from .transducer.transducer import TransducerLoss
+from .perplexity.perplexity import Perplexity
 
 __all__ = [
+    "CrossEntropyLossConfigs",
     "CTCLossConfigs",
+    "JointCTCCrossEntropyLossConfigs",
+    "LabelSmoothedCrossEntropyLossConfigs",
+    "TransducerLossConfigs",
+    "CrossEntropyLoss",
     "CTCLoss",
+    "JointCTCCrossEntropyLoss",
+    "LabelSmoothedCrossEntropyLoss",
+    "TransducerLoss",
 ]
