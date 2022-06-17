@@ -137,7 +137,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
     seed: int = field(
         default=1, metadata={"help": "Seed for training."}
     )
-    accelerator: str = field(wq
+    accelerator: str = field(
         default="dp", metadata={"help": "Previously known as distributed_backend (dp, ddp, ddp2, etc…)."}
     )
     accumulate_grad_batches: int = field(
@@ -147,7 +147,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
         default=1, metadata={"help": "The number of cpu cores"}
     )
     batch_size: int = field(
-        default=8, metadata={"help": "Size of batch"}
+        default=12, metadata={"help": "Size of batch"}
     )
     check_val_every_n_epoch: int = field(
         default=1, metadata={"help": "Check val every n train epochs."}
@@ -196,7 +196,7 @@ class GPUResumeTrainerConfigs(BaseTrainerConfigs):
         default="gpu-resume", metadata={"help": "Trainer name"}
     )
     checkpoint_path: str = field(
-        default="./../../ck.ckpt", metadata={"help": "Path of model checkpoint."}
+        default=MISSING, metadata={"help": "Path of model checkpoint."}
     )
     device: str = field(
         default="gpu", metadata={"help": "Training device."}
@@ -206,13 +206,6 @@ class GPUResumeTrainerConfigs(BaseTrainerConfigs):
     )
     auto_select_gpus: bool = field(
         default=True, metadata={"help": "If enabled and gpus is an integer, pick available gpus automatically."}
-    )
-    precision: int = field(
-        default=16, metadata={"help": "Double precision (64), full precision (32) or half precision (16). "
-                                      "Can be used on CPU, GPU or TPUs."}
-    )
-    amp_backend: str = field(
-        default="apex", metadata={"help": "The mixed precision backend to use (“native” or “apex”)"}
     )
 
 

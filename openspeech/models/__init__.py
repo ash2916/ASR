@@ -102,11 +102,27 @@ from .contextnet import (
     ContextNetTransducerModel,
     ContextNetLSTMModel,
 )
+from .deepspeech2 import (
+    DeepSpeech2Model,
+    DeepSpeech2Configs,
+)
 from .jasper import (
     Jasper5x3Config,
     Jasper10x5Config,
     Jasper5x3Model,
     Jasper10x5Model,
+)
+from .listen_attend_spell import (
+    ListenAttendSpellConfigs,
+    ListenAttendSpellWithMultiHeadConfigs,
+    ListenAttendSpellWithLocationAwareConfigs,
+    DeepCNNWithJointCTCListenAttendSpellConfigs,
+    JointCTCListenAttendSpellConfigs,
+    ListenAttendSpellModel,
+    ListenAttendSpellWithMultiHeadModel,
+    ListenAttendSpellWithLocationAwareModel,
+    JointCTCListenAttendSpellModel,
+    DeepCNNWithJointCTCListenAttendSpellModel
 )
 from .quartznet import (
     QuartzNet5x5Configs,
@@ -115,6 +131,33 @@ from .quartznet import (
     QuartzNet5x5Model,
     QuartzNet15x5Model,
     QuartzNet10x5Model,
+)
+
+from .rnn_transducer import (
+    RNNTransducerModel,
+    RNNTransducerConfigs,
+)
+from .transformer import (
+    TransformerConfigs,
+    TransformerWithCTCConfigs,
+    VGGTransformerConfigs,
+    JointCTCTransformerConfigs,
+    TransformerModel,
+    TransformerWithCTCModel,
+    VGGTransformerModel,
+    JointCTCTransformerModel,
+)
+from .lstm_lm import (
+    LSTMLanguageModel,
+    LSTMLanguageModelConfigs,
+)
+from .transformer_lm import (
+    TransformerLanguageModelConfigs,
+    TransformerLanguageModel
+)
+from .transformer_transducer import (
+    TransformerTransducerModel,
+    TransformerTransducerConfigs,
 )
 
 __all__ = [
@@ -134,15 +177,42 @@ __all__ = [
     "ContextNetLSTMConfigs",
     "ContextNetTransducerModel",
     "ContextNetTransducerConfigs",
+    "DeepCNNWithJointCTCListenAttendSpellModel",
+    "DeepCNNWithJointCTCListenAttendSpellConfigs",
+    "DeepSpeech2Model",
+    "DeepSpeech2Configs",
     "Jasper5x3Model",
     "Jasper5x3Config",
     "Jasper10x5Model",
     "Jasper10x5Config",
     "JointCTCConformerLSTMModel",
     "JointCTCConformerLSTMConfigs",
+    "JointCTCListenAttendSpellConfigs",
+    "JointCTCTransformerConfigs",
+    "JointCTCTransformerModel",
+    "JointCTCListenAttendSpellModel",
+    "ListenAttendSpellConfigs",
+    "ListenAttendSpellWithMultiHeadConfigs",
+    "ListenAttendSpellWithLocationAwareConfigs",
+    "ListenAttendSpellModel",
+    "ListenAttendSpellWithLocationAwareModel",
+    "ListenAttendSpellWithMultiHeadModel",
+    "VGGTransformerConfigs",
+    "VGGTransformerModel",
     "QuartzNet15x5Configs",
     "QuartzNet10x5Configs",
     "QuartzNet5x5Configs",
     "QuartzNet15x5Model",
     "QuartzNet10x5Model",
+    "RNNTransducerConfigs",
+    "RNNTransducerModel",
+    "TransformerModel",
+    "TransformerConfigs",
+    "TransformerWithCTCConfigs",
+    "TransformerTransducerConfigs",
+    "TransformerTransducerModel",
+    "TransformerWithCTCModel",
+    "LSTMLanguageModel",
+    "LSTMLanguageModelConfigs",
+    "TransformerLanguageModelConfigs",
 ]

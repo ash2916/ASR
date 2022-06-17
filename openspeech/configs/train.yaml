@@ -6,7 +6,7 @@ defaults:
   - dataset: librispeech
   - criterion: ctc
   - lr_scheduler: warmup
-  - model: quartznet5x5
-  - trainer: gpu
+  - model: contextnet
+  - trainer: gpu-fp16
   - trainer.logger: null
   - tokenizer: libri_subword
