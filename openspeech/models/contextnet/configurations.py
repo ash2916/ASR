@@ -49,7 +49,7 @@ class ContextNetConfigs(OpenspeechDataclass):
         default="contextnet", metadata={"help": "Model name"}
     )
     model_size: str = field(
-        default="medium", metadata={"help": "Model size"}
+        default="small", metadata={"help": "Model size"}
     )
     input_dim: int = field(
         default=80, metadata={"help": "Dimension of input vector"}
