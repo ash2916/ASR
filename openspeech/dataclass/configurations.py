@@ -75,6 +75,7 @@ class LibriSpeechConfigs(OpenspeechDataclass):
         default="../../../LibriSpeech/libri_subword_manifest.txt", metadata={"help": "Path of manifest file"}
     )
 
+
 @dataclass
 class LMConfigs(OpenspeechDataclass):
     dataset: str = field(
@@ -153,7 +154,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
         default=1, metadata={"help": "Check val every n train epochs."}
     )
     gradient_clip_val: float = field(
-        default=5.0, metadata={"help": "0 means don’t clip."}
+        default=0, metadata={"help": "0 means don’t clip."}
     )
     logger: str = field(
         default="wandb", metadata={"help": "Training logger. {wandb, tensorboard}"}
@@ -170,7 +171,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
     )
     sampler: str = field(
         default="else", metadata={"help": "smart: batching with similar sequence length."
-                                           "else: random batch"}
+                                          "else: random batch"}
     )
 
 
