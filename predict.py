@@ -26,18 +26,12 @@ import warnings
 import logging
 import torch
 import torchaudio
-from tqdm import tqdm
 from omegaconf import DictConfig, OmegaConf
-from openspeech.metrics import WordErrorRate, CharacterErrorRate
 from pytorch_lightning.utilities import rank_zero_info
 
-from openspeech.data.audio.dataset import SpeechToTextDataset
-from openspeech.data.sampler import RandomSampler
-from openspeech.data.audio.data_loader import load_dataset, AudioDataLoader
 from openspeech.dataclass.initialize import hydra_eval_init
 from openspeech.models import MODEL_REGISTRY
 from openspeech.tokenizers import TOKENIZER_REGISTRY
-
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +41,45 @@ def hydra_main(configs: DictConfig) -> None:
     rank_zero_info(OmegaConf.to_yaml(configs))
 
     tokenizer = TOKENIZER_REGISTRY[configs.tokenizer.unit](configs)
-    model = MODEL_REGISTRY[configs.model.model_name](configs=configs, tokenizer=tokenizer)
-    waveform, sample_rate = torchaudio.load('./../../../richman.wav')
-    downsample_resample = torchaudio.transforms.Resample(
-        sample_rate, sample_rate, resampling_method='sinc_interpolation')
+    model = MODEL_REGISTRY[configs.model.model_name]
+    model = model.load_from_checkpoint(
+        './../../../openspeech_models/contextnet/librispeech/gpu-fp16/fbank/warmup/model.ckpt', configs=configs,
+        tokenizer=tokenizer)
+    model.to('cuda')
 
-    down_sampled = downsample_resample(waveform)
-    output = model(down_sampled)
-    print(output)
+    bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
+    model = bundle.get_model().to('cuda')
+    waveform, sample_rate = torchaudio.load('./../../../richman.wav')
+    waveform = waveform.to('cuda')
+
+    if sample_rate != bundle.sample_rate:
+        waveform = torchaudio.functional.resample(waveform, sample_rate, bundle.sample_rate).unsqueeze(0)
+
+    with torch.inference_mode():
+        emission, _ = model(waveform)
+    decoder = GreedyCTCDecoder(labels=bundle.get_labels())
+    transcript = decoder(emission[0])
+    print(transcript)
+
+
+class GreedyCTCDecoder(torch.nn.Module):
+    def __init__(self, labels, blank=0):
+        super().__init__()
+        self.labels = labels
+        self.blank = blank
+
+    def forward(self, emission: torch.Tensor) -> str:
+        """Given a sequence emission over labels, get the best path string
+        Args:
+          emission (Tensor): Logit tensors. Shape `[num_seq, num_label]`.
+
+        Returns:
+          str: The resulting transcript
+        """
+        indices = torch.argmax(emission, dim=-1)  # [num_seq,]
+        indices = torch.unique_consecutive(indices, dim=-1)
+        indices = [i for i in indices if i != self.blank]
+        return "".join([self.labels[i] for i in indices])
 
 
 if __name__ == '__main__':

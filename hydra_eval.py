@@ -25,6 +25,7 @@ import hydra
 import warnings
 import logging
 import torch
+import torchaudio
 from tqdm import tqdm
 from omegaconf import DictConfig, OmegaConf
 from openspeech.metrics import WordErrorRate, CharacterErrorRate
@@ -37,7 +38,6 @@ from openspeech.dataclass.initialize import hydra_eval_init
 from openspeech.models import MODEL_REGISTRY
 from openspeech.tokenizers import TOKENIZER_REGISTRY
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -49,11 +49,13 @@ def hydra_main(configs: DictConfig) -> None:
     use_cuda = configs.eval.use_cuda and torch.cuda.is_available()
     device = torch.device('cuda' if use_cuda else 'cpu')
 
-    audio_paths, transcripts = load_dataset(configs.eval.manifest_file_path)
+    audio_paths, transcripts = load_dataset('./../../../datasets/LibriSpeech/libri_subword_manifest.txt')
     tokenizer = TOKENIZER_REGISTRY[configs.tokenizer.unit](configs)
 
     model = MODEL_REGISTRY[configs.model.model_name]
-    model = model.load_from_checkpoint(configs.eval.checkpoint_path, configs=configs, tokenizer=tokenizer)
+    model = model.load_from_checkpoint(
+        './../../../openspeech_models/contextnet/librispeech/gpu-fp16/fbank/warmup/model.ckpt', configs=configs,
+        tokenizer=tokenizer)
     model.to(device)
 
     if configs.eval.beam_size > 1:
@@ -61,32 +63,51 @@ def hydra_main(configs: DictConfig) -> None:
 
     dataset = SpeechToTextDataset(
         configs=configs,
-        dataset_path=configs.eval.dataset_path,
+        dataset_path='./../../../datasets/LibriSpeech/',
         audio_paths=audio_paths,
         transcripts=transcripts,
         sos_id=tokenizer.sos_id,
         eos_id=tokenizer.eos_id,
     )
-    sampler = RandomSampler(data_source=dataset, batch_size=configs.eval.batch_size)
+    sampler = RandomSampler(data_source=dataset, batch_size=12)
     data_loader = AudioDataLoader(
         dataset=dataset,
         num_workers=configs.eval.num_workers,
         batch_sampler=sampler,
     )
-
+    bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
     wer_metric = WordErrorRate(tokenizer)
     cer_metric = CharacterErrorRate(tokenizer)
 
     for i, (batch) in enumerate(tqdm(data_loader)):
         with torch.no_grad():
             inputs, targets, input_lengths, target_lengths = batch
+            model = bundle.get_model().to('cuda')
+            emission = model(inputs.to(device), input_lengths.to(device))
+            decoder = GreedyCTCDecoder(labels=bundle.get_labels())
+            transcript = decoder(emission["predictions"])
+            print(transcript)
+        break
 
-            outputs = model(inputs.to(device), input_lengths.to(device))
 
-        wer = wer_metric(targets[:, 1:], outputs["predictions"])
-        cer = cer_metric(targets[:, 1:], outputs["predictions"])
+class GreedyCTCDecoder(torch.nn.Module):
+    def __init__(self, labels, blank=0):
+        super().__init__()
+        self.labels = labels
+        self.blank = blank
 
-    logger.info(f"Word Error Rate: {wer}, Character Error Rate: {cer}")
+    def forward(self, emission: torch.Tensor) -> str:
+        """Given a sequence emission over labels, get the best path string
+        Args:
+          emission (Tensor): Logit tensors. Shape `[num_seq, num_label]`.
+
+        Returns:
+          str: The resulting transcript
+        """
+        indices = torch.argmax(emission, dim=-1)  # [num_seq,]
+        indices = torch.unique_consecutive(indices, dim=-1)
+        indices = [i for i in indices if i != self.blank]
+        return "".join([self.labels[i] for i in indices])
 
 
 if __name__ == '__main__':

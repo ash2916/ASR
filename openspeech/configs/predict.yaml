@@ -1,5 +1,6 @@
 # @package _group_
 
 defaults:
+  - audio: fbank
   - model: contextnet
   - tokenizer: libri_subword

@@ -1,7 +1,7 @@
 # @package _group_
 
 defaults:
-  - audio: null
   - eval: default
-  - model: null
-  - tokenizer: null
+  - audio: fbank
+  - model: contextnet
+  - tokenizer: libri_subword

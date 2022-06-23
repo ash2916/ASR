@@ -46,7 +46,7 @@ class LibriSpeechSubwordTokenizerConfigs(TokenizerConfigs):
         default=5000, metadata={"help": "Size of vocabulary."}
     )
     vocab_path: str = field(
-        default="../../../LibriSpeech/", metadata={"help": "Path of vocabulary file."}
+        default="./../../../datasets/LibriSpeech/", metadata={"help": "Path of vocabulary file."}
     )
 
 

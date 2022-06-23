@@ -119,7 +119,7 @@ def load_dataset(manifest_file_path: str) -> Tuple[list, list]:
     audio_paths = list()
     transcripts = list()
 
-    with open(manifest_file_path) as f:
+    with open(manifest_file_path, encoding="utf8") as f:
         for idx, line in enumerate(f.readlines()):
             audio_path, korean_transcript, transcript = line.split('\t')
             transcript = transcript.replace('\n', '')
