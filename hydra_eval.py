@@ -41,7 +41,7 @@ from openspeech.tokenizers import TOKENIZER_REGISTRY
 logger = logging.getLogger(__name__)
 
 
-@hydra.main(config_path=os.path.join("..", "openspeech", "configs"), config_name="eval")
+@hydra.main(config_path=os.path.join("openspeech", "configs"), config_name="eval")
 def hydra_main(configs: DictConfig) -> None:
     rank_zero_info(OmegaConf.to_yaml(configs))
     wer, cer = 1.0, 1.0

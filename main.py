@@ -1,10 +1,11 @@
 import torch
+
 # import util.latency as latency
 # from util import model_utility
 # from util.model_utility import ModelUtility
 #
 # useGPU = False
-r=torch.rand(4)
+r = torch.rand(4)
 device = torch.device("cuda:0")
 r.to(device)
 # print(latency.get_latency(device, model_utility.contextnet(device=device)))
