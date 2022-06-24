@@ -46,29 +46,22 @@ def train(num_epochs):
         for i, data in enumerate(train_loader, 0):
             inputs, sample_rate, outputs, a, b, c = data
             optimizer.zero_grad()
-            predicted_outputs = conformer(inputs)
+            predicted_outputs = conformer(inputs.to(device))
             optimizer.step()  # adjust parameters based on the calculated gradients
 
         # Validation Loop
         with torch.no_grad():
             conformer.eval()
-            for data in validate_loader:
-                inputs, outputs = data
-                predicted_outputs = conformer(inputs)
+            for i, data in enumerate(train_loader, 0):
+                inputs, sample_rate, outputs, a, b, c = data
+                predicted_outputs = conformer(inputs.to(device))
 
                 # The label with the highest value will be our prediction
                 _, predicted = torch.max(predicted_outputs, 1)
-                total += outputs.size(0)
-                running_accuracy += (predicted == outputs).sum().item()
-        accuracy = (100 * running_accuracy / total)
-
-        # Save the model if the accuracy is the best
-        if accuracy > best_accuracy:
-            saveModel()
-            best_accuracy = accuracy
+        saveModel()
 
             # Print the statistics of the epoch
-        print('Completed training batch', epoch, 'Accuracy is %d %%' % accuracy)
+        print('Completed training batch', epoch)
 
 
 def test():
@@ -79,15 +72,11 @@ def test():
     total = 0
 
     with torch.no_grad():
-        for data in test_loader:
-            inputs, outputs = data
-            outputs = outputs.to(torch.float32)
-            predicted_outputs = conformer(inputs)
+        for i, data in enumerate(train_loader, 0):
+            inputs, sample_rate, outputs, a, b, c = data
+            predicted_outputs = conformer(inputs.to(device))
             _, predicted = torch.max(predicted_outputs, 1)
-            total += outputs.size(0)
-            running_accuracy += (predicted == outputs).sum().item()
-
-        print('Accuracy of the model based on the test set is: %d %%' % (100 * running_accuracy / total))
+            print(predicted)
 
 
 num_epochs = 1

@@ -46,8 +46,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import requests
 import torch
-
-import torchtrial
 import torchaudio
 
 matplotlib.rcParams["figure.figsize"] = [16.0, 4.8]
@@ -59,43 +57,7 @@ print(torch.__version__)
 print(torchaudio.__version__)
 print(device)
 
-SPEECH_URL = "https://pytorch-tutorial-assets.s3.amazonaws.com/VOiCES_devkit/source-16k/train/sp0307/Lab41-SRI-VOiCES-src-sp0307-ch127535-sg0042.wav"  # noqa: E501
-SPEECH_FILE = "_assets/speech.wav"
-
-if not os.path.exists(SPEECH_FILE):
-    os.makedirs("_assets", exist_ok=True)
-    with open(SPEECH_FILE, "wb") as file:
-        file.write(requests.get(SPEECH_URL).content)
-
-
-######################################################################
-# Creating a pipeline
-# -------------------
-#
-# First, we will create a Wav2Vec2 model that performs the feature
-# extraction and the classification.
-#
-# There are two types of Wav2Vec2 pre-trained weights available in
-# torchaudio. The ones fine-tuned for ASR task, and the ones not
-# fine-tuned.
-#
-# Wav2Vec2 (and HuBERT) models are trained in self-supervised manner. They
-# are firstly trained with audio only for representation learning, then
-# fine-tuned for a specific task with additional labels.
-#
-# The pre-trained weights without fine-tuning can be fine-tuned
-# for other downstream tasks as well, but this tutorial does not
-# cover that.
-#
-# We will use :py:func:`torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H` here.
-#
-# There are multiple models available as
-# :py:mod:`torchaudio.pipelines`. Please check the documentation for
-# the detail of how they are trained.
-#
-# The bundle object provides the interface to instantiate model and other
-# information. Sampling rate and the class labels are found as follow.
-#
+SPEECH_FILE = "./richman.wav"
 
 bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
 
@@ -148,64 +110,9 @@ if sample_rate != bundle.sample_rate:
 
 ######################################################################
 # Extracting acoustic features
-# ----------------------------
-#
-# The next step is to extract acoustic features from the audio.
-#
-# .. note::
-#    Wav2Vec2 models fine-tuned for ASR task can perform feature
-#    extraction and classification with one step, but for the sake of the
-#    tutorial, we also show how to perform feature extraction here.
-#
-
-with torch.inference_mode():
-    features, _ = model.extract_features(waveform)
-
-
-######################################################################
-# The returned features is a list of tensors. Each tensor is the output of
-# a transformer layer.
-#
-
-fig, ax = plt.subplots(len(features), 1, figsize=(16, 4.3 * len(features)))
-for i, feats in enumerate(features):
-    ax[i].imshow(feats[0].cpu())
-    ax[i].set_title(f"Feature from transformer layer {i+1}")
-    ax[i].set_xlabel("Feature dimension")
-    ax[i].set_ylabel("Frame (time-axis)")
-plt.tight_layout()
-plt.show()
-
-
-######################################################################
-# Feature classification
-# ----------------------
-#
-# Once the acoustic features are extracted, the next step is to classify
-# them into a set of categories.
-#
-# Wav2Vec2 model provides method to perform the feature extraction and
-# classification in one step.
-#
-
+# ---------------------------
 with torch.inference_mode():
     emission, _ = model(waveform)
-
-
-######################################################################
-# The output is in the form of logits. It is not in the form of
-# probability.
-#
-# Let’s visualize this.
-#
-
-plt.imshow(emission[0].cpu().T)
-plt.title("Classification result")
-plt.xlabel("Frame (time-axis)")
-plt.ylabel("Class")
-plt.show()
-print("Class labels:", bundle.get_labels())
-
 
 ######################################################################
 # We can see that there are strong indications to certain labels across
