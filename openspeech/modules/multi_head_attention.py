@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch.nn as nn
-from torch import Tensor
+import torchtrial.nn as nn
+from torchtrial import Tensor
 from typing import Tuple, Optional
 
 from openspeech.modules.wrapper import Linear

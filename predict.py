@@ -24,7 +24,10 @@ import os
 import hydra
 import warnings
 import logging
+
 import torch
+
+import torchtrial
 import torchaudio
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.utilities import rank_zero_info

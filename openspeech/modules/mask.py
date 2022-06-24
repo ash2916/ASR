@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
-from torch import Tensor
+import torchtrial
+from torchtrial import Tensor
 
 
 def get_attn_pad_mask(inputs, input_lengths, expand_length):

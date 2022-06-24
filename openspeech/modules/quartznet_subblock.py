@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
-import torch.nn as nn
+import torchtrial
+import torchtrial.nn as nn
 from typing import Optional, Tuple
 
 from openspeech.modules.depthwise_conv1d import DepthwiseConv1d

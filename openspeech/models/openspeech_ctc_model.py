@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
+import torchtrial
 from collections import OrderedDict
 from typing import Dict
 from omegaconf import DictConfig

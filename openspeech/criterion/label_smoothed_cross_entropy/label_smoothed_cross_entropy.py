@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import torchtrial
+import torchtrial.nn as nn
+import torchtrial.nn.functional as F
 from omegaconf import DictConfig
-from torch import Tensor
+from torchtrial import Tensor
 
 from .. import register_criterion
 from ..label_smoothed_cross_entropy.configuration import LabelSmoothedCrossEntropyLossConfigs

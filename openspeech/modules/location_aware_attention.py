@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch import Tensor
+import torchtrial
+import torchtrial.nn as nn
+import torchtrial.nn.functional as F
+from torchtrial import Tensor
 from typing import Tuple
 
 from openspeech.modules.wrapper import Linear

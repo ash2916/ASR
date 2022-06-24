@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 import math
-import torch
-import torch.nn as nn
-from torch import Tensor
+import torchtrial
+import torchtrial.nn as nn
+from torchtrial import Tensor
 from typing import Tuple
 
 from openspeech.modules.swish import Swish

@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 from omegaconf import DictConfig
-from torch.optim import Optimizer
+from torchtrial.optim import Optimizer
 from dataclasses import dataclass, field
 from typing import Optional
 

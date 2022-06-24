@@ -24,7 +24,7 @@ import os
 import hydra
 import warnings
 import logging
-import torch
+import torchtrial
 import torchaudio
 from tqdm import tqdm
 from omegaconf import DictConfig, OmegaConf

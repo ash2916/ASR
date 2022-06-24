@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch.nn as nn
+import torchtrial.nn as nn
 from typing import Tuple, Optional
-from torch import Tensor
+from torchtrial import Tensor
 
 from openspeech.modules.mask_conv1d import MaskConv1d
 

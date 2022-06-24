@@ -46,6 +46,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import requests
 import torch
+
+import torchtrial
 import torchaudio
 
 matplotlib.rcParams["figure.figsize"] = [16.0, 4.8]

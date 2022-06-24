@@ -1,5 +1,5 @@
-import torch
-import torch.utils.benchmark as benchmark
+import torchtrial
+import torchtrial.utils.benchmark as benchmark
 
 from util import model_utility
 

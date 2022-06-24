@@ -22,7 +22,7 @@
 
 from dataclasses import dataclass, field
 from omegaconf import DictConfig
-from torch.optim import Optimizer
+from torchtrial.optim import Optimizer
 from typing import Optional
 
 from openspeech.dataclass.configurations import LearningRateSchedulerConfigs

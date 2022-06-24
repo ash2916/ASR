@@ -25,7 +25,7 @@ import numpy as np
 import random
 import logging
 import librosa
-from torch import Tensor
+from torchtrial import Tensor
 
 from ..audio.load import load_audio
 

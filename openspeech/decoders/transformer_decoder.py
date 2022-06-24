@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 import random
-import torch
-import torch.nn as nn
-from torch import Tensor
+import torchtrial
+import torchtrial.nn as nn
+from torchtrial import Tensor
 from typing import Optional, Tuple
 
 from openspeech.decoders import OpenspeechDecoder

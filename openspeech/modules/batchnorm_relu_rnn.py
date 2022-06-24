@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch.nn as nn
-import torch.nn.functional as F
-from torch import Tensor
+import torchtrial.nn as nn
+import torchtrial.nn.functional as F
+from torchtrial import Tensor
 
 
 class BNReluRNN(nn.Module):

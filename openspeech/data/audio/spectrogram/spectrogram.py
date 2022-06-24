@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 import numpy as np
-import torch
+import torchtrial
 from omegaconf import DictConfig
-from torch import Tensor
+from torchtrial import Tensor
 
 from ... import register_audio_feature_transform
 from ...audio.spectrogram.configuration import SpectrogramConfigs

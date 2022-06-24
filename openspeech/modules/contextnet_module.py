@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from torch import Tensor
+from torchtrial import Tensor
 from typing import Tuple
 from openspeech.modules.swish import Swish
-import torch.nn as nn
+import torchtrial.nn as nn
 
 
 class ContextNetSEModule(nn.Module):

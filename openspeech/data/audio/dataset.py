@@ -22,12 +22,12 @@
 
 import os
 import random
-import torch
+import torchtrial
 import numpy as np
 import logging
 from omegaconf import DictConfig
-from torch import Tensor
-from torch.utils.data import Dataset
+from torchtrial import Tensor
+from torchtrial.utils.data import Dataset
 
 from openspeech.data import AUDIO_FEATURE_TRANSFORM_REGISTRY
 from openspeech.data.audio.augment import JoiningAugment, NoiseInjector, SpecAugment, TimeStretchAugment

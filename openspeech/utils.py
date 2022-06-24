@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import logging
-import torch
+import torchtrial
 import platform
 import importlib
 from collections import OrderedDict

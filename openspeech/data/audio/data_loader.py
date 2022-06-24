@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
+import torchtrial
 import numpy as np
 from typing import Tuple
-from torch.utils.data import DataLoader, Sampler
+from torchtrial.utils.data import DataLoader, Sampler
 
 
 def _collate_fn(batch, pad_id: int = 0):

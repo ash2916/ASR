@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torch
+import torchtrial
 import logging
 
-from torch.utils.data import Dataset
+from torchtrial.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
