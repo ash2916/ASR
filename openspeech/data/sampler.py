@@ -22,7 +22,7 @@
 
 import os
 import numpy as np
-from torchtrial.utils.data import Sampler
+from torch.utils.data import Sampler
 
 from .audio.load import load_audio
 

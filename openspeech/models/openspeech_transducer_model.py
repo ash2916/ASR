@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
-import torchtrial.nn as nn
+import torch
+import torch.nn as nn
 import warnings
-from torchtrial import Tensor
+from torch import Tensor
 from collections import OrderedDict
 from omegaconf import DictConfig
 from typing import Tuple, Dict

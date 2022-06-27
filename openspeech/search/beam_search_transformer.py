@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
+import torch
 
 from openspeech.search.beam_search_base import OpenspeechBeamSearchBase
 from openspeech.decoders import TransformerDecoder

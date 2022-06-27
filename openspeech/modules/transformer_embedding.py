@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 import math
-import torchtrial.nn as nn
-from torchtrial import Tensor
+import torch.nn as nn
+from torch import Tensor
 
 
 class TransformerEmbedding(nn.Module):

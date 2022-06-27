@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
+import torch
 import csv
 from omegaconf import DictConfig
 from dataclasses import dataclass, field

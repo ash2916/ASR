@@ -21,11 +21,11 @@
 # SOFTWARE.
 
 import math
-import torchtrial
+import torch
 from dataclasses import dataclass, field
 from typing import Optional
 from omegaconf import DictConfig
-from torchtrial.optim import Optimizer
+from torch.optim import Optimizer
 
 from openspeech.dataclass.configurations import LearningRateSchedulerConfigs
 from openspeech.optim.scheduler import register_scheduler

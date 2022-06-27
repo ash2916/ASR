@@ -21,10 +21,10 @@
 # SOFTWARE.
 
 import math
-import torchtrial
-import torchtrial.nn as nn
-import torchtrial.nn.functional as F
-from torchtrial import Tensor
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch import Tensor
 from typing import Optional
 
 from openspeech.modules.wrapper import Linear

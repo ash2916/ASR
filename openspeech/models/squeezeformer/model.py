@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 from omegaconf import DictConfig
-from torchtrial import Tensor
+from torch import Tensor
 from typing import Dict
 from collections import OrderedDict
 

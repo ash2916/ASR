@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
-import torchtrial.nn as nn
-from torchtrial import Tensor
+import torch
+import torch.nn as nn
+from torch import Tensor
 from typing import Tuple
 
 

@@ -21,10 +21,10 @@
 # SOFTWARE.
 
 from typing import Tuple
-from torchtrial import Tensor
+from torch import Tensor
 from openspeech.modules.contextnet_module import ContextNetConvModule, ContextNetSEModule
 from openspeech.modules.swish import Swish
-import torchtrial.nn as nn
+import torch.nn as nn
 
 
 class ContextNetBlock(nn.Module):

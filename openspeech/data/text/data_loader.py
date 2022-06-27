@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
-from torchtrial.utils.data import DataLoader
+import torch
+from torch.utils.data import DataLoader
 
 
 def _collate_fn(batch, pad_id: int = 0):

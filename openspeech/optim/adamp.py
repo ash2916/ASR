@@ -2,8 +2,8 @@
 # Copyright (c) 2020-present NAVER Corp.
 # MIT license
 
-import torchtrial
-from torchtrial.optim.optimizer import Optimizer
+import torch
+from torch.optim.optimizer import Optimizer
 import math
 
 

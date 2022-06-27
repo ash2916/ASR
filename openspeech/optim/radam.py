@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import math
-import torchtrial
-from torchtrial.optim.optimizer import Optimizer
+import torch
+from torch.optim.optimizer import Optimizer
 
 
 class RAdam(Optimizer):

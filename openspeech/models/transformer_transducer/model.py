@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
+import torch
 from omegaconf import DictConfig
-from torchtrial import Tensor
+from torch import Tensor
 from typing import Dict
 from collections import OrderedDict
 

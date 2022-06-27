@@ -22,7 +22,7 @@
 
 import numpy as np
 from omegaconf import DictConfig
-from torchtrial import Tensor
+from torch import Tensor
 
 from ... import register_audio_feature_transform
 from ...audio.filter_bank.configuration import FilterBankConfigs

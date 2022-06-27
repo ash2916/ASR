@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial.nn as nn
+import torch.nn as nn
 from typing import Tuple
 from omegaconf import DictConfig
-from torchtrial import Tensor
+from torch import Tensor
 
 from .. import register_criterion
 from ..joint_ctc_cross_entropy.configuration import JointCTCCrossEntropyLossConfigs

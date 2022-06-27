@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import torchtrial
-import torchtrial.nn as nn
+import torch
+import torch.nn as nn
 import pytorch_lightning as pl
 from typing import Dict
 from omegaconf import DictConfig
-from torchtrial import Tensor
-from torchtrial.optim import Adam, Adagrad, Adadelta, Adamax, AdamW, SGD, ASGD
+from torch import Tensor
+from torch.optim import Adam, Adagrad, Adadelta, Adamax, AdamW, SGD, ASGD
 
 from openspeech.optim import AdamP, RAdam, Novograd
 from openspeech.criterion import CRITERION_REGISTRY

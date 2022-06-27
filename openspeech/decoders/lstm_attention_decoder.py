@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 import random
-import torchtrial
-import torchtrial.nn as nn
+import torch
+import torch.nn as nn
 from typing import Optional, Tuple, Any
 
 from openspeech.decoders import OpenspeechDecoder
