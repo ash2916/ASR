@@ -137,10 +137,6 @@ class SpeechToTextDataset(Dataset):
 
         self.total_size = len(self.audio_paths)
 
-        tmp = list(zip(self.audio_paths, self.transcripts, self.augments))
-        random.shuffle(tmp)
-        self.audio_paths, self.transcripts, self.augments = zip(*tmp)
-
     def _parse_audio(self, audio_path: str, augment: int = None, joining_idx: int = 0) -> Tensor:
         """
         Parses audio.

@@ -36,7 +36,7 @@ class LibriSpeechCharacterTokenizerConfigs(TokenizerConfigs):
         default="libri_character", metadata={"help": "Unit of vocabulary."}
     )
     vocab_path: str = field(
-        default="../../../LibriSpeech/libri_labels.csv", metadata={"help": "Path of vocabulary file."}
+        default="./../../../datasets/LibriSpeech/libri_labels.csv", metadata={"help": "Path of vocabulary file."}
     )
 
 
@@ -81,7 +81,8 @@ class LibriSpeechCharacterTokenizer(Tokenizer):
                     break
                 elif label.item() == self.blank_id:
                   continue
-                sentence += self.id_dict[label.item()]
+                if label.item() in self.id_dict:
+                    sentence += self.id_dict[label.item()]
             return sentence
 
         sentences = list()
@@ -92,7 +93,8 @@ class LibriSpeechCharacterTokenizer(Tokenizer):
                     break
                 elif label.item() == self.blank_id:
                   continue
-                sentence += self.id_dict[label.item()]
+                if label.item() in self.id_dict:
+                    sentence += self.id_dict[label.item()]
             sentences.append(sentence)
         return sentences
 

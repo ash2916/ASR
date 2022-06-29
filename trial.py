@@ -492,10 +492,10 @@ def main(learning_rate=5e-4, batch_size=20, epochs=10,
     torch.manual_seed(7)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    train_dataset = torchaudio.datasets.LIBRISPEECH("./datasets/", url=train_url, download=True)
+    train_dataset = torchaudio.datasets.LIBRISPEECH("./datasets/", url=test_url, download=True)
     test_dataset = torchaudio.datasets.LIBRISPEECH("./datasets/", url=test_url, download=True)
 
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'pin_memory': True} if use_cuda else {}
     train_loader = data.DataLoader(dataset=train_dataset,
                                    batch_size=hparams['batch_size'],
                                    shuffle=True,
@@ -525,7 +525,9 @@ def main(learning_rate=5e-4, batch_size=20, epochs=10,
     iter_meter = IterMeter()
     for epoch in range(1, epochs + 1):
         train(model, device, train_loader, criterion, optimizer, scheduler, epoch, iter_meter)
-        test(model, device, test_loader, criterion, epoch, iter_meter)
+        # test(model, device, test_loader, criterion, epoch, iter_meter)
+    torch.save(model.state_dict(), './model.pt')
+
 
 learning_rate = 5e-4
 batch_size = 12
@@ -534,3 +536,58 @@ libri_train_set = "train-clean-100"
 libri_test_set = "test-clean"
 
 main(learning_rate, batch_size, epochs, libri_train_set, libri_test_set)
+
+hparams = {
+    "n_cnn_layers": 3,
+    "n_rnn_layers": 5,
+    "rnn_dim": 512,
+    "n_class": 29,
+    "n_feats": 128,
+    "stride": 2,
+    "dropout": 0.1,
+    "learning_rate": learning_rate,
+    "batch_size": batch_size,
+    "epochs": epochs
+}
+use_cuda = torch.cuda.is_available()
+torch.manual_seed(7)
+device = torch.device("cuda" if use_cuda else "cpu")
+model = SpeechRecognitionModel(
+    hparams['n_cnn_layers'], hparams['n_rnn_layers'], hparams['rnn_dim'],
+    hparams['n_class'], hparams['n_feats'], hparams['stride'], hparams['dropout']
+)
+model.load_state_dict(torch.load('./model.pt'))
+model.eval()
+model.to('cuda')
+waveform, sample_rate = torchaudio.load('./test.flac')
+waveform = train_audio_transforms(waveform).unsqueeze(1)
+waveform = waveform.to('cuda')
+with torch.inference_mode():
+    emission = model(waveform)
+
+
+class GreedyCTCDecoder(torch.nn.Module):
+    def __init__(self, labels, blank=0):
+        super().__init__()
+        self.labels = labels
+        self.blank = blank
+
+    def forward(self, emission: torch.Tensor) -> str:
+        """Given a sequence emission over labels, get the best path string
+        Args:
+          emission (Tensor): Logit tensors. Shape `[num_seq, num_label]`.
+
+        Returns:
+          str: The resulting transcript
+        """
+        indices = torch.argmax(emission, dim=-1)  # [num_seq,]
+        print(indices)
+        indices = torch.unique_consecutive(indices, dim=-1)
+        indices = [i for i in indices if i != self.blank]
+        return "".join([self.labels[i] for i in indices])
+
+
+decoder = GreedyCTCDecoder(labels=text_transform.char_map)
+print(emission)
+transcript = decoder(emission[0])
+print(transcript)

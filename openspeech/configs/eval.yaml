@@ -4,4 +4,4 @@ defaults:
   - eval: default
   - audio: fbank
   - model: contextnet
-  - tokenizer: libri_subword
+  - tokenizer: libri_character

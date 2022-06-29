@@ -63,7 +63,7 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
         self.dir = self._get_dir()
         self.configs.dataset.dataset_path = "./../../../datasets/LibriSpeech/"
         self.configs.dataset.manifest_file_path = self.dir + "libri_subword_manifest.txt"
-        self.configs.tokenizer.vocab_path = self.dir
+        self.configs.tokenizer.vocab_path = "./../../../datasets/LibriSpeech/libri_labels.csv"
         self.dataset = dict()
         self.logger = logging.getLogger(__name__)
 

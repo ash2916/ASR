@@ -49,65 +49,58 @@ def hydra_main(configs: DictConfig) -> None:
     use_cuda = configs.eval.use_cuda and torch.cuda.is_available()
     device = torch.device('cuda' if use_cuda else 'cpu')
 
-    audio_paths, transcripts = load_dataset('./../../../datasets/LibriSpeech/libri_subword_manifest.txt')
+    audio_paths, transcripts = load_dataset("./../../../openspeech_models/contextnet/librispeech/gpu-fp16/fbank"
+                                            "/warmup/libri_subword_manifest.txt")
     tokenizer = TOKENIZER_REGISTRY[configs.tokenizer.unit](configs)
 
     model = MODEL_REGISTRY[configs.model.model_name]
     model = model.load_from_checkpoint(
-        './../../../openspeech_models/contextnet/librispeech/gpu-fp16/fbank/warmup/model.ckpt', configs=configs,
-        tokenizer=tokenizer)
+        "./../../../openspeech_models/contextnet/librispeech/gpu-fp16/fbank/warmup/model.ckpt",
+        configs=configs, tokenizer=tokenizer)
     model.to(device)
 
     if configs.eval.beam_size > 1:
         model.set_beam_decoder(beam_size=configs.eval.beam_size)
 
-    dataset = SpeechToTextDataset(
-        configs=configs,
-        dataset_path='./../../../datasets/LibriSpeech/',
-        audio_paths=audio_paths,
-        transcripts=transcripts,
-        sos_id=tokenizer.sos_id,
-        eos_id=tokenizer.eos_id,
-    )
-    sampler = RandomSampler(data_source=dataset, batch_size=12)
-    data_loader = AudioDataLoader(
-        dataset=dataset,
-        num_workers=configs.eval.num_workers,
-        batch_sampler=sampler,
-    )
-    bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
-    wer_metric = WordErrorRate(tokenizer)
-    cer_metric = CharacterErrorRate(tokenizer)
+    waveform, sample_rate = torchaudio.load('./../../../test.flac')
+    waveform = waveform.to('cuda')
 
-    for i, (batch) in enumerate(tqdm(data_loader)):
-        with torch.no_grad():
-            inputs, targets, input_lengths, target_lengths = batch
-            model = bundle.get_model().to('cuda')
-            emission = model(inputs.to(device), input_lengths.to(device))
-            decoder = GreedyCTCDecoder(labels=bundle.get_labels())
-            transcript = decoder(emission["predictions"])
-            print(transcript)
-        break
+    waveform = torchaudio.functional.resample(waveform, sample_rate, sample_rate).unsqueeze(1)
+    with torch.inference_mode():
+        outputs = model(waveform, waveform.shape[0])
+    transcript = tokenizer.decode(outputs["predictions"])
+    print(transcript)
 
+    # dataset = SpeechToTextDataset(
+    #     configs=configs,
+    #     dataset_path="./../../../datasets/LibriSpeech/",
+    #     audio_paths=audio_paths,
+    #     transcripts=transcripts,
+    #     sos_id=tokenizer.sos_id,
+    #     eos_id=tokenizer.eos_id,
+    # )
+    # sampler = RandomSampler(data_source=dataset, batch_size=configs.eval.batch_size)
+    # data_loader = AudioDataLoader(
+    #     dataset=dataset,
+    #     num_workers=configs.eval.num_workers,
+    #     batch_sampler=sampler,
+    # )
+    #
+    # wer_metric = WordErrorRate(tokenizer)
+    # cer_metric = CharacterErrorRate(tokenizer)
+    #
+    # for i, (batch) in enumerate(tqdm(data_loader)):
+    #     with torch.no_grad():
+    #         inputs, targets, input_lengths, target_lengths = batch
+    #
+    #         outputs = model(inputs.to(device), input_lengths.to(device))
+    #
+    #     wer = wer_metric(targets[:, 1:], outputs["predictions"])
+    #     cer = cer_metric(targets[:, 1:], outputs["predictions"])
+    #
+    #     # print(tokenizer.decode(outputs["predictions"]))
 
-class GreedyCTCDecoder(torch.nn.Module):
-    def __init__(self, labels, blank=0):
-        super().__init__()
-        self.labels = labels
-        self.blank = blank
-
-    def forward(self, emission: torch.Tensor) -> str:
-        """Given a sequence emission over labels, get the best path string
-        Args:
-          emission (Tensor): Logit tensors. Shape `[num_seq, num_label]`.
-
-        Returns:
-          str: The resulting transcript
-        """
-        indices = torch.argmax(emission, dim=-1)  # [num_seq,]
-        indices = torch.unique_consecutive(indices, dim=-1)
-        indices = [i for i in indices if i != self.blank]
-        return "".join([self.labels[i] for i in indices])
+    logger.info(f"Word Error Rate: {wer}, Character Error Rate: {cer}")
 
 
 if __name__ == '__main__':
