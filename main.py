@@ -38,16 +38,9 @@ pre-trained models from wav2vec 2.0
 
 # %matplotlib inline
 
-import os
-
-import IPython
-import matplotlib
-import matplotlib.pyplot as plt
-import requests
 import torch
 import torchaudio
 
-matplotlib.rcParams["figure.figsize"] = [16.0, 4.8]
 
 torch.random.manual_seed(0)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
