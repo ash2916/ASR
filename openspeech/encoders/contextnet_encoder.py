@@ -110,7 +110,7 @@ class ContextNetEncoder(OpenspeechEncoder):
         encoder_logits = None
 
         output = inputs.transpose(1, 2)
-        output_lengths = inputs.shape[0]
+        output_lengths = input_lengths
 
         for block in self.blocks:
             output, output_lengths = block(output, output_lengths)

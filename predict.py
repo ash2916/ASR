@@ -25,10 +25,11 @@ class GreedyCTCDecoder(torch.nn.Module):
         return "".join([self.labels[i] for i in indices])
 
 
-model = Wav2Letter()
-model.to('cuda')
 
 bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
+
+model = bundle.get_model()
+model.to('cuda')
 waveform, sample_rate = torchaudio.load('./richman.wav')
 waveform = waveform.to('cuda')
 

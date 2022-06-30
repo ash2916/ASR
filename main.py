@@ -51,19 +51,18 @@ matplotlib.rcParams["figure.figsize"] = [16.0, 4.8]
 
 torch.random.manual_seed(0)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-SPEECH_FILE = "./richman.wav"
+SPEECH_FILE = "./test.flac"
 
 bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
 model = bundle.get_model().to(device)
+print(model)
 waveform, sample_rate = torchaudio.load(SPEECH_FILE)
 waveform = waveform.to(device)
 
-if sample_rate != bundle.sample_rate:
-    waveform = torchaudio.functional.resample(waveform, sample_rate, bundle.sample_rate)
 with torch.inference_mode():
     emission, _ = model(waveform)
 
-
+print(emission)
 class GreedyCTCDecoder(torch.nn.Module):
     def __init__(self, labels, blank=0):
         super().__init__()

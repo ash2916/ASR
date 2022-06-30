@@ -492,20 +492,17 @@ def main(learning_rate=5e-4, batch_size=20, epochs=10,
     torch.manual_seed(7)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    train_dataset = torchaudio.datasets.LIBRISPEECH("./datasets/", url=test_url, download=True)
+    train_dataset = torchaudio.datasets.LIBRISPEECH("./datasets/", url=train_url, download=True)
     test_dataset = torchaudio.datasets.LIBRISPEECH("./datasets/", url=test_url, download=True)
 
-    kwargs = {'pin_memory': True} if use_cuda else {}
     train_loader = data.DataLoader(dataset=train_dataset,
                                    batch_size=hparams['batch_size'],
                                    shuffle=True,
-                                   collate_fn=lambda x: data_processing(x, 'train'),
-                                   **kwargs)
+                                   collate_fn=lambda x: data_processing(x, 'train'))
     test_loader = data.DataLoader(dataset=test_dataset,
                                   batch_size=hparams['batch_size'],
                                   shuffle=False,
-                                  collate_fn=lambda x: data_processing(x, 'valid'),
-                                  **kwargs)
+                                  collate_fn=lambda x: data_processing(x, 'valid'))
 
     model = SpeechRecognitionModel(
         hparams['n_cnn_layers'], hparams['n_rnn_layers'], hparams['rnn_dim'],
@@ -549,6 +546,7 @@ hparams = {
     "batch_size": batch_size,
     "epochs": epochs
 }
+
 use_cuda = torch.cuda.is_available()
 torch.manual_seed(7)
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -558,36 +556,9 @@ model = SpeechRecognitionModel(
 )
 model.load_state_dict(torch.load('./model.pt'))
 model.eval()
-model.to('cuda')
-waveform, sample_rate = torchaudio.load('./test.flac')
-waveform = train_audio_transforms(waveform).unsqueeze(1)
-waveform = waveform.to('cuda')
+model.to('cpu')
+waveform, sample_rate = torchaudio.load('./richman.wav')
+waveform = waveform.to('cpu')
+waveform = waveform.unsqueeze(0)
 with torch.inference_mode():
     emission = model(waveform)
-
-
-class GreedyCTCDecoder(torch.nn.Module):
-    def __init__(self, labels, blank=0):
-        super().__init__()
-        self.labels = labels
-        self.blank = blank
-
-    def forward(self, emission: torch.Tensor) -> str:
-        """Given a sequence emission over labels, get the best path string
-        Args:
-          emission (Tensor): Logit tensors. Shape `[num_seq, num_label]`.
-
-        Returns:
-          str: The resulting transcript
-        """
-        indices = torch.argmax(emission, dim=-1)  # [num_seq,]
-        print(indices)
-        indices = torch.unique_consecutive(indices, dim=-1)
-        indices = [i for i in indices if i != self.blank]
-        return "".join([self.labels[i] for i in indices])
-
-
-decoder = GreedyCTCDecoder(labels=text_transform.char_map)
-print(emission)
-transcript = decoder(emission[0])
-print(transcript)

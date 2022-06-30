@@ -53,52 +53,43 @@ def hydra_main(configs: DictConfig) -> None:
                                             "/warmup/libri_subword_manifest.txt")
     tokenizer = TOKENIZER_REGISTRY[configs.tokenizer.unit](configs)
 
-    model = MODEL_REGISTRY[configs.model.model_name]
-    model = model.load_from_checkpoint(
-        "./../../../openspeech_models/contextnet/librispeech/gpu-fp16/fbank/warmup/model.ckpt",
-        configs=configs, tokenizer=tokenizer)
+    model = MODEL_REGISTRY[configs.model.model_name](configs=configs, tokenizer=tokenizer)
     model.to(device)
 
-    if configs.eval.beam_size > 1:
-        model.set_beam_decoder(beam_size=configs.eval.beam_size)
+    # waveform, sample_rate = torchaudio.load('./../../../test.flac')
+    # waveform = waveform.unsqueeze(1)
+    # waveform = waveform.to(device)
+    # print(waveform)
+    # with torch.inference_mode():
+    #     outputs = model(waveform, waveform.shape[0])
+    # transcript = tokenizer.decode(outputs["predictions"])
+    # print(transcript)
 
-    waveform, sample_rate = torchaudio.load('./../../../test.flac')
-    waveform = waveform.to('cuda')
+    dataset = SpeechToTextDataset(
+        configs=configs,
+        dataset_path="./../../../datasets/LibriSpeech/",
+        audio_paths=audio_paths,
+        transcripts=transcripts,
+        sos_id=tokenizer.sos_id,
+        eos_id=tokenizer.eos_id,
+    )
+    sampler = RandomSampler(data_source=dataset, batch_size=configs.eval.batch_size)
+    data_loader = AudioDataLoader(
+        dataset=dataset,
+        num_workers=configs.eval.num_workers,
+        batch_sampler=sampler,
+    )
+    wer_metric = WordErrorRate(tokenizer)
+    cer_metric = CharacterErrorRate(tokenizer)
 
-    waveform = torchaudio.functional.resample(waveform, sample_rate, sample_rate).unsqueeze(1)
-    with torch.inference_mode():
-        outputs = model(waveform, waveform.shape[0])
-    transcript = tokenizer.decode(outputs["predictions"])
-    print(transcript)
+    for i, (batch) in enumerate(tqdm(data_loader)):
+        with torch.no_grad():
+            inputs, targets, input_lengths, target_lengths = batch
 
-    # dataset = SpeechToTextDataset(
-    #     configs=configs,
-    #     dataset_path="./../../../datasets/LibriSpeech/",
-    #     audio_paths=audio_paths,
-    #     transcripts=transcripts,
-    #     sos_id=tokenizer.sos_id,
-    #     eos_id=tokenizer.eos_id,
-    # )
-    # sampler = RandomSampler(data_source=dataset, batch_size=configs.eval.batch_size)
-    # data_loader = AudioDataLoader(
-    #     dataset=dataset,
-    #     num_workers=configs.eval.num_workers,
-    #     batch_sampler=sampler,
-    # )
-    #
-    # wer_metric = WordErrorRate(tokenizer)
-    # cer_metric = CharacterErrorRate(tokenizer)
-    #
-    # for i, (batch) in enumerate(tqdm(data_loader)):
-    #     with torch.no_grad():
-    #         inputs, targets, input_lengths, target_lengths = batch
-    #
-    #         outputs = model(inputs.to(device), input_lengths.to(device))
-    #
-    #     wer = wer_metric(targets[:, 1:], outputs["predictions"])
-    #     cer = cer_metric(targets[:, 1:], outputs["predictions"])
-    #
-    #     # print(tokenizer.decode(outputs["predictions"]))
+            outputs = model(inputs.to(device), input_lengths.to(device))
+
+        wer = wer_metric(targets[:, 1:], outputs["predictions"])
+        cer = cer_metric(targets[:, 1:], outputs["predictions"])
 
     logger.info(f"Word Error Rate: {wer}, Character Error Rate: {cer}")
 
