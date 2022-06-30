@@ -7,7 +7,6 @@ import sys
 
 from tqdm import tqdm
 
-
 ######################################################################
 # Let’s check if a CUDA GPU is available and select our device. Running
 # the network on a GPU will greatly decrease the training/testing runtime.
@@ -41,28 +40,16 @@ class SubsetSC(SPEECHCOMMANDS):
 # Create training and testing split of the data. We do not use validation in this tutorial.
 train_set = SubsetSC("training")
 test_set = SubsetSC("testing")
-
+validate_set = SubsetSC("validation")
 waveform, sample_rate, label, speaker_id, utterance_number = train_set[0]
 
-labels = sorted(list(set(datapoint[2] for datapoint in train_set)))
+labels = sorted(list(set(datapoint[2] for datapoint in test_set)))
 
-
-######################################################################
-# The 35 audio labels are commands that are said by users. The first few
-# files are people saying “marvin”.
-#
-
-waveform_first, *_ = train_set[0]
-waveform_second, *_ = train_set[1]
-######################################################################
-# The last file is someone saying “visual”.
-#
-
-waveform_last, *_ = train_set[-1]
-
+print("Done loading")
 new_sample_rate = 8000
 transform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=new_sample_rate)
 transformed = transform(waveform)
+
 
 def label_to_index(word):
     # Return the position of the word in labels
@@ -81,6 +68,7 @@ word_recovered = index_to_label(index)
 
 print(word_start, "-->", index, "-->", word_recovered)
 
+
 def pad_sequence(batch):
     # Make all tensor in a batch the same length by padding with zeros
     batch = [item.t() for item in batch]
@@ -89,7 +77,6 @@ def pad_sequence(batch):
 
 
 def collate_fn(batch):
-
     # A data tuple has the form:
     # waveform, sample_rate, label, speaker_id, utterance_number
 
@@ -133,6 +120,17 @@ test_loader = torch.utils.data.DataLoader(
     num_workers=num_workers,
     pin_memory=pin_memory,
 )
+validate_loader = torch.utils.data.DataLoader(
+    validate_set,
+    batch_size=batch_size,
+    shuffle=False,
+    drop_last=False,
+    collate_fn=collate_fn,
+    num_workers=num_workers,
+    pin_memory=pin_memory,
+)
+
+
 class M5(nn.Module):
     def __init__(self, n_input=1, n_output=35, stride=16, n_channel=32):
         super().__init__()
@@ -172,6 +170,13 @@ class M5(nn.Module):
 model = M5(n_input=transformed.shape[0], n_output=len(labels))
 model.to(device)
 
+running_train_loss = 0.0
+running_accuracy = 0.0
+running_val_loss = 0.0
+total = 0
+best_accuracy = 0.0
+train_loss_value = 0.0
+
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -182,32 +187,36 @@ n = count_parameters(model)
 optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0001)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
+
 def train(model, epoch, log_interval):
     model.train()
+    global running_train_loss
     for batch_idx, (data, target) in enumerate(train_loader):
-
+        # Calculate training loss value
         data = data.to(device)
         target = target.to(device)
-
-        # apply transform and model on whole batch directly on device
         data = transform(data)
         output = model(data)
-
-        # negative log-likelihood for a tensor of size (batch x 1 x n_output)
         loss = F.nll_loss(output.squeeze(), target)
-
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        running_train_loss += loss.item()  # track the loss value
 
         # print training stats
         if batch_idx % log_interval == 0:
-            print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
+            print(
+                f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
 
         # update progress bar
         pbar.update(pbar_update)
         # record loss
         losses.append(loss.item())
+
+# Function to save the model
+def saveModel(model):
+    path = "./Model.pth"
+    torch.save(model.state_dict(), path)
 
 def number_of_correct(pred, target):
     # count number of correct predictions
@@ -219,11 +228,43 @@ def get_likely_index(tensor):
     return tensor.argmax(dim=-1)
 
 
+def validate(model):
+    # Validation Loop
+    global running_val_loss
+    global total
+    global running_accuracy
+    global best_accuracy
+    with torch.no_grad():
+        model.eval()
+        for batch_idx, (data, target) in enumerate(validate_loader):
+            # Calculate training loss value
+            data = data.to(device)
+            target = target.to(device)
+            data = transform(data)
+            output = model(data)
+            loss = F.nll_loss(output.squeeze(), target)
+            # The label with the highest value will be our prediction
+            _, predicted = torch.max(output, 1)
+            running_val_loss += loss.item()
+            total += output.size(0)
+            running_accuracy += (predicted == output).sum().item()
+
+            # Calculate validation loss value
+    val_loss_value = running_val_loss / len(validate_loader)
+    accuracy = (100 * running_accuracy / total)
+    # Print the statistics of the epoch
+    print('Validation Loss is: %.4f' % val_loss_value, 'Accuracy is %d %%' % accuracy)
+
+    # Save the model if the accuracy is the best
+    if accuracy > best_accuracy:
+        saveModel(model)
+        best_accuracy = accuracy
+
+
 def test(model, epoch):
     model.eval()
     correct = 0
     for data, target in test_loader:
-
         data = data.to(device)
         target = target.to(device)
 
@@ -237,7 +278,9 @@ def test(model, epoch):
         # update progress bar
         pbar.update(pbar_update)
 
-    print(f"\nTest Epoch: {epoch}\tAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
+    print(
+        f"\nTest Epoch: {epoch}\tAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
+
 
 log_interval = 20
 n_epoch = 2
@@ -250,10 +293,15 @@ transform = transform.to(device)
 with tqdm(total=n_epoch) as pbar:
     for epoch in range(1, n_epoch + 1):
         train(model, epoch, log_interval)
+        train_loss_value = running_train_loss / len(train_loader)
+        validate(model)
         test(model, epoch)
         scheduler.step()
 
+
 def predict(tensor):
+    model.load_state_dict(torch.load('./Model.pth'))
+    model.eval()
     # Use the model to predict the label of the waveform
     tensor = tensor.to(device)
     tensor = transform(tensor)
