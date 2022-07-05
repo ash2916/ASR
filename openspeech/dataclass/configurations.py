@@ -160,7 +160,7 @@ class BaseTrainerConfigs(OpenspeechDataclass):
         default="wandb", metadata={"help": "Training logger. {wandb, tensorboard}"}
     )
     max_epochs: int = field(
-        default=10, metadata={"help": "Stop training once this number of epochs is reached."}
+        default=1, metadata={"help": "Stop training once this number of epochs is reached."}
     )
     save_checkpoint_n_steps: int = field(
         default=1000, metadata={"help": "Save a checkpoint every N steps."}

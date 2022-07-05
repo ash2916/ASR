@@ -1,10 +1,14 @@
+import nltk
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchaudio
 import sys
+from nltk.corpus import words
+import string
 
+from torchaudio.models import Conformer, ConvTasNet
 from tqdm import tqdm
 
 ######################################################################
@@ -38,14 +42,14 @@ class SubsetSC(SPEECHCOMMANDS):
 
 
 # Create training and testing split of the data. We do not use validation in this tutorial.
-train_set = SubsetSC("training")
-test_set = SubsetSC("testing")
-validate_set = SubsetSC("validation")
-waveform, sample_rate, label, speaker_id, utterance_number = train_set[0]
-
-labels = sorted(list(set(datapoint[2] for datapoint in test_set)))
-
-print("Done loading")
+train_set = torchaudio.datasets.LIBRISPEECH("./datasets/", url="train-clean-100", download=True)
+test_set = torchaudio.datasets.LIBRISPEECH("./datasets/", url="test-clean", download=True)
+validate_set = torchaudio.datasets.LIBRISPEECH("./datasets/", url="dev-clean", download=True)
+waveform, sample_rate, label, speaker_id, _, utterance_number = train_set[0]
+word_list = words.words()
+labels = [x for x in word_list]
+labels += [x for x in list(string.printable)]
+labels = sorted(labels)
 new_sample_rate = 8000
 transform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=new_sample_rate)
 transformed = transform(waveform)
@@ -53,6 +57,11 @@ transformed = transform(waveform)
 
 def label_to_index(word):
     # Return the position of the word in labels
+    global labels
+    word = word.lower()
+    if word not in labels:
+        labels.append(word)
+        labels = sorted(labels)
     return torch.tensor(labels.index(word))
 
 
@@ -60,13 +69,6 @@ def index_to_label(index):
     # Return the word corresponding to the index in labels
     # This is the inverse of label_to_index
     return labels[index]
-
-
-word_start = "yes"
-index = label_to_index(word_start)
-word_recovered = index_to_label(index)
-
-print(word_start, "-->", index, "-->", word_recovered)
 
 
 def pad_sequence(batch):
@@ -85,7 +87,7 @@ def collate_fn(batch):
     # Gather in lists, and encode labels as indices
     for waveform, _, label, *_ in batch:
         tensors += [waveform]
-        targets += [label_to_index(label)]
+        targets += [label_to_index(x) for x in label.split(" ")]
 
     # Group the list of tensors into a batched tensor
     tensors = pad_sequence(tensors)
@@ -94,7 +96,7 @@ def collate_fn(batch):
     return tensors, targets
 
 
-batch_size = 256
+batch_size = 512
 
 if device == "cuda":
     num_workers = 1
@@ -129,6 +131,10 @@ validate_loader = torch.utils.data.DataLoader(
     num_workers=num_workers,
     pin_memory=pin_memory,
 )
+running_accuracy = 0.0
+total = 0
+best_accuracy = -1
+train_loss_value = 0.0
 
 
 class M5(nn.Module):
@@ -167,15 +173,9 @@ class M5(nn.Module):
         return F.log_softmax(x, dim=2)
 
 
+# model = ConvTasNet()
 model = M5(n_input=transformed.shape[0], n_output=len(labels))
 model.to(device)
-
-running_train_loss = 0.0
-running_accuracy = 0.0
-running_val_loss = 0.0
-total = 0
-best_accuracy = 0.0
-train_loss_value = 0.0
 
 
 def count_parameters(model):
@@ -190,33 +190,29 @@ scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
 def train(model, epoch, log_interval):
     model.train()
-    global running_train_loss
     for batch_idx, (data, target) in enumerate(train_loader):
         # Calculate training loss value
         data = data.to(device)
         target = target.to(device)
         data = transform(data)
         output = model(data)
-        loss = F.nll_loss(output.squeeze(), target)
         optimizer.zero_grad()
-        loss.backward()
         optimizer.step()
-        running_train_loss += loss.item()  # track the loss value
 
         # print training stats
         if batch_idx % log_interval == 0:
             print(
-                f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
+                f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]")
 
         # update progress bar
         pbar.update(pbar_update)
-        # record loss
-        losses.append(loss.item())
+
 
 # Function to save the model
 def saveModel(model):
     path = "./Model.pth"
     torch.save(model.state_dict(), path)
+
 
 def number_of_correct(pred, target):
     # count number of correct predictions
@@ -230,35 +226,17 @@ def get_likely_index(tensor):
 
 def validate(model):
     # Validation Loop
-    global running_val_loss
     global total
     global running_accuracy
     global best_accuracy
     with torch.no_grad():
         model.eval()
         for batch_idx, (data, target) in enumerate(validate_loader):
-            # Calculate training loss value
             data = data.to(device)
             target = target.to(device)
             data = transform(data)
             output = model(data)
-            loss = F.nll_loss(output.squeeze(), target)
-            # The label with the highest value will be our prediction
-            _, predicted = torch.max(output, 1)
-            running_val_loss += loss.item()
-            total += output.size(0)
-            running_accuracy += (predicted == output).sum().item()
-
-            # Calculate validation loss value
-    val_loss_value = running_val_loss / len(validate_loader)
-    accuracy = (100 * running_accuracy / total)
-    # Print the statistics of the epoch
-    print('Validation Loss is: %.4f' % val_loss_value, 'Accuracy is %d %%' % accuracy)
-
-    # Save the model if the accuracy is the best
-    if accuracy > best_accuracy:
         saveModel(model)
-        best_accuracy = accuracy
 
 
 def test(model, epoch):
@@ -272,59 +250,52 @@ def test(model, epoch):
         data = transform(data)
         output = model(data)
 
-        pred = get_likely_index(output)
-        correct += number_of_correct(pred, target)
-
         # update progress bar
         pbar.update(pbar_update)
 
-    print(
-        f"\nTest Epoch: {epoch}\tAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
 
 
 log_interval = 20
-n_epoch = 2
+n_epoch = 1
 
 pbar_update = 1 / (len(train_loader) + len(test_loader))
 losses = []
 
 # The transform needs to live on the same device as the model and the data.
 transform = transform.to(device)
+
 with tqdm(total=n_epoch) as pbar:
     for epoch in range(1, n_epoch + 1):
         train(model, epoch, log_interval)
-        train_loss_value = running_train_loss / len(train_loader)
         validate(model)
         test(model, epoch)
         scheduler.step()
 
 
 def predict(tensor):
-    model.load_state_dict(torch.load('./Model.pth'))
-    model.eval()
     # Use the model to predict the label of the waveform
     tensor = tensor.to(device)
     tensor = transform(tensor)
-    tensor = model(tensor.unsqueeze(0))
+    tensor = tensor.unsqueeze(0)
+    tensor = model(tensor)
     tensor = get_likely_index(tensor)
     tensor = index_to_label(tensor.squeeze())
     return tensor
 
 
+model.load_state_dict(torch.load('./Model.pth'))
+model.eval()
 waveform, sample_rate, utterance, *_ = train_set[-1]
 
 print(f"Expected: {utterance}. Predicted: {predict(waveform)}.")
 
-for i, (waveform, sample_rate, utterance, *_) in enumerate(test_set):
+for i, (waveform, sample_rate, utterance, *_) in enumerate(train_set):
     output = predict(waveform)
-    if output != utterance:
-        print(f"Data point #{i}. Expected: {utterance}. Predicted: {output}.")
-        break
-else:
-    print("All examples in this dataset were correctly classified!")
-    print("In this case, let's just look at the last data point")
     print(f"Data point #{i}. Expected: {utterance}. Predicted: {output}.")
-
+waveform, sample_rate = torchaudio.load('./four.wav')
+waveform = waveform.to(device)
+output = predict(waveform)
+print(f" Predicted: {output}.")
 # def record(seconds=1):
 #
 #     from google.colab import output as colab_output

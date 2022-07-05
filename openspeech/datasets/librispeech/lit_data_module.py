@@ -48,7 +48,7 @@ class LightningLibriSpeechDataModule(pl.LightningDataModule):
     Args:
         configs (DictConfig): configuraion set
     """
-    LIBRISPEECH_TRAIN_NUM = 14900
+    LIBRISPEECH_TRAIN_NUM = 14400
     LIBRISPEECH_VALID_NUM = 2800
     LIBRISPEECH_TEST_NUM = 2700
     LIBRISPEECH_PARTS = [
